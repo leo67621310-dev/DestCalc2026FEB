@@ -538,48 +538,50 @@ export default function App() {
       
       <div className="app-wrapper">
         <div className="main-content">
-           <div className="header-row">
-              <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                      <h3>Destination Charges Calculator</h3>
-                      <span style={{ fontSize: '11px', padding: '4px 8px', background: '#f8fafc', color: 'var(--secondary)', borderRadius: '6px', fontWeight: 600, border: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                          <Bot size={12} />
-                          {model === 'gemini-3.1-pro-preview' ? 'Gemini 3.1 Pro' : model === 'gemini-3-flash-preview' ? 'Gemini 3.0 Flash' : 'Gemini 2.5 Flash'}
-                      </span>
+           {/* HEADER & GLOBALS */}
+           <div className="dashboard-header">
+               <div className="header-row">
+                  <div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                          <h3>Destination Charges Calculator</h3>
+                          <span style={{ fontSize: '11px', padding: '4px 8px', background: 'var(--border-light)', color: 'var(--secondary)', borderRadius: '6px', fontWeight: 600, border: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                              <Bot size={12} />
+                              {model === 'gemini-3.1-pro-preview' ? 'Gemini 3.1 Pro' : model === 'gemini-3-flash-preview' ? 'Gemini 3.0 Flash' : 'Gemini 2.5 Flash'}
+                          </span>
+                      </div>
+                      <span style={{ fontSize: '12px', color: 'var(--secondary)' }}>Comparison & Generation Tool</span>
                   </div>
-                  <span style={{ fontSize: '12px', color: 'var(--secondary)' }}>Comparison & Generation Tool</span>
-              </div>
-              <div style={{ display: 'flex', gap: '10px' }}>
-                  <button className="btn-danger" onClick={() => { if(confirm('Reset all data?')) { localStorage.removeItem(STORAGE_KEY); location.reload(); }}} style={{ fontSize: '11px', padding: '6px 10px' }}><AlertTriangle size={14} /> Reset App</button>
-                  <button className="btn-secondary" onClick={() => setSidebarCollapsed(!sidebarCollapsed)}>
-                      <HistoryIcon size={16} /> History
-                  </button>
-              </div>
-           </div>
+                  <div style={{ display: 'flex', gap: '10px' }}>
+                      <button className="btn-danger" onClick={() => { if(confirm('Reset all data?')) { localStorage.removeItem(STORAGE_KEY); location.reload(); }}} style={{ fontSize: '11px', padding: '6px 10px' }}><AlertTriangle size={14} /> Reset App</button>
+                      <button className="btn-secondary" onClick={() => setSidebarCollapsed(!sidebarCollapsed)}>
+                          <HistoryIcon size={16} /> History
+                      </button>
+                  </div>
+               </div>
 
-           {/* GLOBALS */}
-           <div className="global-inputs">
-              <div className="input-group" style={{ flex: 2, minWidth: '200px', borderRight: '1px solid #e2e8f0', paddingRight: '20px', marginRight: '10px' }}>
-                  <label>Job Reference #</label>
-                  <input type="text" value={globals.ref} onChange={e => setGlobals({...globals, ref: e.target.value})} placeholder="e.g. HMB-2023-001" />
-              </div>
-              <div className="input-group narrow">
-                  <label>CBM (m³)</label>
-                  <input type="number" value={globals.cbm} onChange={e => setGlobals({...globals, cbm: parseFloat(e.target.value)})} step="0.001" />
-              </div>
-              <div className="input-group narrow">
-                  <label>KGS</label>
-                  <input type="number" value={globals.kgs} onChange={e => setGlobals({...globals, kgs: parseFloat(e.target.value)})} step="0.001" />
-              </div>
-              <div className="input-group narrow">
-                  <label>PKGS</label>
-                  <input type="number" value={globals.pkgs} onChange={e => setGlobals({...globals, pkgs: parseFloat(e.target.value)})} step="1" />
-              </div>
-              <div className="input-group" style={{ flex: '0 0 auto', paddingBottom: '1px' }}>
-                  <button className="btn-primary" onClick={saveToHistory} title="Save Snapshot">
-                      <Camera size={16} /> Snap
-                  </button>
-              </div>
+               <div className="global-inputs">
+                  <div className="input-group" style={{ flex: 2, minWidth: '200px', borderRight: '1px solid var(--border)', paddingRight: '20px', marginRight: '10px' }}>
+                      <label>Job Reference #</label>
+                      <input type="text" value={globals.ref} onChange={e => setGlobals({...globals, ref: e.target.value})} placeholder="e.g. HMB-2023-001" />
+                  </div>
+                  <div className="input-group narrow">
+                      <label>CBM (m³)</label>
+                      <input type="number" value={globals.cbm} onChange={e => setGlobals({...globals, cbm: parseFloat(e.target.value)})} step="0.001" />
+                  </div>
+                  <div className="input-group narrow">
+                      <label>KGS</label>
+                      <input type="number" value={globals.kgs} onChange={e => setGlobals({...globals, kgs: parseFloat(e.target.value)})} step="0.001" />
+                  </div>
+                  <div className="input-group narrow">
+                      <label>PKGS</label>
+                      <input type="number" value={globals.pkgs} onChange={e => setGlobals({...globals, pkgs: parseFloat(e.target.value)})} step="1" />
+                  </div>
+                  <div className="input-group" style={{ flex: '0 0 auto', paddingBottom: '1px' }}>
+                      <button className="btn-primary" onClick={saveToHistory} title="Save Snapshot">
+                          <Camera size={16} /> Snap
+                      </button>
+                  </div>
+               </div>
            </div>
 
            {/* TABS */}
