@@ -1,0 +1,5 @@
+{
+  "name": "Freight Charge Calculator",
+  "description": "A secure, modular freight charge calculator with Gemini AI integration for scanning documents.",
+  "requestFramePermissions": []
+}

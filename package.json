@@ -1,0 +1,25 @@
+{
+  "name": "freight-calculator",
+  "version": "1.0.0",
+  "type": "module",
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "@google/genai": "*",
+    "lucide-react": "^0.263.1",
+    "clsx": "^2.0.0",
+    "tailwind-merge": "^1.14.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.2",
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
+    "@types/node": "^20.0.0",
+    "@vitejs/plugin-react": "^4.0.0",
+    "vite": "^4.4.0"
+  },
+  "scripts": {
+    "start": "vite",
+    "build": "vite build"
+  }
+}
