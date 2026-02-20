@@ -19,7 +19,7 @@ export default function App() {
   
   const [globals, setGlobals] = useState({ cbm: 3.000, kgs: 250.0, pkgs: 3, ref: '' });
   const [viewMode, setViewMode] = useState('Comparison');
-  const [model, setModel] = useState('gemini-3.1-pro-preview');
+  const [model, setModel] = useState('gemini-2.5-flash');
   const [reasoning, setReasoning] = useState('low');
   
   // HISTORY STATES
@@ -519,7 +519,13 @@ export default function App() {
         <div className="main-content">
            <div className="header-row">
               <div>
-                  <h3>Destination Charges Calculator</h3>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <h3>Destination Charges Calculator</h3>
+                      <span style={{ fontSize: '11px', padding: '4px 8px', background: '#f8fafc', color: 'var(--secondary)', borderRadius: '6px', fontWeight: 600, border: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                          <Bot size={12} />
+                          {model === 'gemini-3.1-pro-preview' ? 'Gemini 3.1 Pro' : model === 'gemini-3-flash-preview' ? 'Gemini 3.0 Flash' : 'Gemini 2.5 Flash'}
+                      </span>
+                  </div>
                   <span style={{ fontSize: '12px', color: 'var(--secondary)' }}>Comparison & Generation Tool</span>
               </div>
               <div style={{ display: 'flex', gap: '10px' }}>
