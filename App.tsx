@@ -19,6 +19,7 @@ export default function App() {
   
   const [globals, setGlobals] = useState({ cbm: 3.000, kgs: 250.0, pkgs: 3, ref: '' });
   const [viewMode, setViewMode] = useState('Comparison');
+  const [showInlineDiff, setShowInlineDiff] = useState(false);
   const [model, setModel] = useState('gemini-2.5-flash');
   const [reasoning, setReasoning] = useState('low');
   
@@ -465,15 +466,35 @@ export default function App() {
                             </tr>
                         )
                     }
+
+                    let diffClass = '';
+                    let diffAmountStr = '';
+                    if (showInlineDiff && diffRes && showDiff) {
+                        const match = diffRes.rows.find((dr: any) => dr.item === r.item && dr.curr === r.curr);
+                        if (!match) {
+                            diffClass = 'row-diff-new';
+                            diffAmountStr = ' (New)';
+                        } else if (r.amount > match.amount) {
+                            diffClass = 'row-diff-higher';
+                            diffAmountStr = ` (+${(r.amount - match.amount).toFixed(2)})`;
+                        } else if (r.amount < match.amount) {
+                            diffClass = 'row-diff-lower';
+                            diffAmountStr = ` (${(r.amount - match.amount).toFixed(2)})`;
+                        }
+                    }
+
                     return (
-                        <tr key={i} className="xl-row">
+                        <tr key={i} className={`xl-row ${diffClass}`}>
                         <td className="col-item">{r.item}</td>
                         <td className="col-desc">
                             {r.desc}
                             {r.subtext && <span className="calc-subtext"><span className="min-highlight">{r.subtext}</span></span>}
                         </td>
                         <td className="col-curr">{r.curr}</td>
-                        <td className="col-amt">{r.amount.toFixed(2)}</td>
+                        <td className="col-amt">
+                            {r.amount.toFixed(2)}
+                            {diffAmountStr && <span style={{ fontSize: '11px', marginLeft: '6px', opacity: 0.8 }}>{diffAmountStr}</span>}
+                        </td>
                         </tr>
                     )
                   })}
@@ -679,13 +700,23 @@ export default function App() {
            )}
 
            {/* OUTPUT */}
-           <div style={{ marginTop: '30px', borderTop: '1px solid var(--border)', paddingTop: '25px', display: 'flex', gap: '15px', alignItems: 'center', justifyContent: 'center' }}>
-                <label style={{ fontSize: '13px', fontWeight: 600, color: 'var(--secondary)' }}>VIEW MODE:</label>
-                <select value={viewMode} onChange={(e) => setViewMode(e.target.value)} style={{ width: '220px' }}>
-                    <option value="Comparison">Side-by-Side Comparison</option>
-                    <option value="Standard">Standard Only</option>
-                    <option value="Requested">Requested Only</option>
-                </select>
+           <div style={{ marginTop: '30px', borderTop: '1px solid var(--border)', paddingTop: '25px', display: 'flex', gap: '15px', alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <label style={{ fontSize: '13px', fontWeight: 600, color: 'var(--secondary)' }}>VIEW MODE:</label>
+                    <select value={viewMode} onChange={(e) => setViewMode(e.target.value)} style={{ width: '220px' }}>
+                        <option value="Comparison">Side-by-Side Comparison</option>
+                        <option value="Standard">Standard Only</option>
+                        <option value="Requested">Requested Only</option>
+                    </select>
+                </div>
+                {viewMode === 'Comparison' && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginLeft: '10px', paddingLeft: '20px', borderLeft: '1px solid var(--border)' }}>
+                        <label style={{ fontSize: '13px', fontWeight: 600, color: 'var(--secondary)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <input type="checkbox" checked={showInlineDiff} onChange={e => setShowInlineDiff(e.target.checked)} style={{ width: '16px', height: '16px', margin: 0, cursor: 'pointer', boxShadow: 'none' }} />
+                            Highlight Differences
+                        </label>
+                    </div>
+                )}
            </div>
            
            <div className="xl-wrapper" style={{marginTop:'30px'}}>
