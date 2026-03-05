@@ -21,10 +21,15 @@ export const ChargeGroupCard: React.FC<Props> = ({
   const cardRef = useRef<HTMLDivElement>(null);
   
   const handleDragOver = (e: React.DragEvent) => {
-    if (e.dataTransfer.types.includes('text/plain')) {
-       // Only accept drop if same prefix (checked in parent mostly, but good practice)
-       e.preventDefault();
-       e.currentTarget.classList.add('drag-over');
+    // Only show group-level preview when a GROUP is being dragged
+    if (!e.dataTransfer.types.includes('text/plain')) return;
+
+    const payload = e.dataTransfer.getData('text/plain') || '';
+    const isGroupDrag = payload.startsWith('group-');
+    
+    if (isGroupDrag) {
+      e.preventDefault();
+      e.currentTarget.classList.add('drag-over');
     }
   };
 
@@ -35,14 +40,33 @@ export const ChargeGroupCard: React.FC<Props> = ({
   const handleDrop = (e: React.DragEvent, rIdx?: number) => {
     e.preventDefault();
     e.stopPropagation();
+
+    const payload = e.dataTransfer.getData('text/plain') || '';
+    const isRowDrag = payload.startsWith('row-');
+    const isGroupDrag = payload.startsWith('group-');
+
     e.currentTarget.classList.remove('drag-over');
-    onDrop(e, rIdx !== undefined ? 'row' : 'group', groupIdx, rIdx);
+
+    // Route drop based on what is actually being dragged
+    if (rIdx !== undefined && isRowDrag) {
+      onDrop(e, 'row', groupIdx, rIdx);
+    } else if (rIdx === undefined && isGroupDrag) {
+      onDrop(e, 'group', groupIdx);
+    }
   };
 
   const handleRowDragOver = (e: React.DragEvent, rowEl: HTMLElement) => {
-     e.preventDefault();
-     e.stopPropagation();
-     rowEl.classList.add('row-drag-over');
+    // Only show row-level preview when a ROW is being dragged
+    if (!e.dataTransfer.types.includes('text/plain')) return;
+
+    const payload = e.dataTransfer.getData('text/plain') || '';
+    const isRowDrag = payload.startsWith('row-');
+
+    if (isRowDrag) {
+      e.preventDefault();
+      e.stopPropagation();
+      rowEl.classList.add('row-drag-over');
+    }
   }
 
   const handleRowDragLeave = (e: React.DragEvent, rowEl: HTMLElement) => {
