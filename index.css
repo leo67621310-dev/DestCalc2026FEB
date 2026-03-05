@@ -30,7 +30,8 @@
 
 body { 
   font-family: 'Inter', system-ui, sans-serif; 
-  background: radial-gradient(circle at top left, #FFFFE3 0, var(--bg-body) 50%, #CBCBCB 120%);
+  /* Use a simple, calm paper background to avoid harsh gradients */
+  background-color: var(--bg-body);
   color: var(--primary); 
   margin: 0; 
   padding: 24px; 
