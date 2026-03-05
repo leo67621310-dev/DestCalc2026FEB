@@ -18,6 +18,9 @@
   --bg-soft: #F1F5F9;        /* Light panels (e.g. headers, inputs) */
   --bg-highlight: #DBEAFE;   /* Soft blue highlight / selection */
 
+  /* Softer blue specifically for table text */
+  --table-text: #60A5FA;     /* Light, less saturated blue */
+
   /* Semantic accents matching the HTML version */
   --success: #10B981;        /* Emerald 500 */
   --danger: #EF4444;         /* Red 500 */
@@ -238,7 +241,7 @@ button:active { transform: translateY(0); box-shadow: var(--shadow); }
   padding: 16px 24px;
   font-size: 14px;
   font-weight: 600;
-  color: var(--primary);
+  color: var(--table-text);
   background-color: #ffffff;
   border-bottom: 1px solid var(--border);
   text-transform: uppercase;
@@ -251,11 +254,27 @@ button:active { transform: translateY(0); box-shadow: var(--shadow); }
 .table-wrapper { flex: 1; display: flex; flex-direction: column; }
 .xl-table { width: 100%; border-collapse: collapse; font-size: 13px; }
 
-.xl-header { background: #fafafa; color: var(--secondary); font-weight: 600; text-align: left; padding: 12px 24px; border-bottom: 1px solid var(--border); text-transform: uppercase; font-size: 11px; letter-spacing: 0.05em; }
+.xl-header { 
+  background: #fafafa; 
+  color: var(--table-text); 
+  font-weight: 600; 
+  text-align: left; 
+  padding: 12px 24px; 
+  border-bottom: 1px solid var(--border); 
+  text-transform: uppercase; 
+  font-size: 11px; 
+  letter-spacing: 0.05em; 
+}
 .xl-header.col-curr { text-align: center; }
 .xl-header.col-amt { text-align: right; padding-right: 24px; }
 
-.xl-row td { padding: 12px 24px; border-bottom: 1px solid var(--border-light); vertical-align: middle; transition: background-color 0.2s ease; }
+.xl-row td { 
+  padding: 12px 24px; 
+  border-bottom: 1px solid var(--border-light); 
+  vertical-align: middle; 
+  transition: background-color 0.2s ease; 
+  color: var(--table-text);
+}
 .xl-row.pad-row td { border-bottom: 1px solid transparent; } /* Invisible borders for pads */
 .xl-row:nth-child(even) { background-color: #fafafa; }
 
@@ -271,7 +290,13 @@ button:active { transform: translateY(0); box-shadow: var(--shadow); }
 .row-diff-higher .calc-subtext, .row-diff-lower .calc-subtext, .row-diff-new .calc-subtext { opacity: 0.8; }
 .row-diff-higher .min-highlight, .row-diff-lower .min-highlight, .row-diff-new .min-highlight { color: inherit; }
 
-.col-amt { text-align: right; padding-right: 24px; font-weight: 500; font-variant-numeric: tabular-nums; }
+.col-amt { 
+  text-align: right; 
+  padding-right: 24px; 
+  font-weight: 500; 
+  font-variant-numeric: tabular-nums; 
+  color: var(--text-main); /* Keep amounts high-contrast and neutral */
+}
 .min-highlight { font-weight: 600; color: var(--primary); font-size: 11px; }
 .calc-subtext { display: block; font-size: 11px; color: var(--secondary); margin-top: 4px; font-weight: 500; }
 
