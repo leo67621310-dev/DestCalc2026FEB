@@ -9,9 +9,14 @@
   --secondary: #6D8196;      /* Desaturated blue for accents */
 
   --border: #CBCBCB;         /* Soft neutral border */
-  --border-light: #F5F5F5;   /* Light surface separators */
-  --bg-body: #FFFFE3;        /* Warm paper background */
-  --bg-card: #ffffff;        /* Card surface */
+  --border-light: #E5E5E5;   /* Light surface separators */
+
+  /* Use a neutral, light grey as the main canvas */
+  --bg-body: #F3F4F6;        /* Neutral background */
+  --bg-card: #FFFFFF;        /* Card surface */
+
+  /* Keep the warm ink-wash yellow only for subtle highlights, not the full page */
+  --bg-highlight: #FFFFE3;   /* Optional highlight surface */
 
   /* Semantic accents keep clarity but sit in palette */
   --success: #3B7A57;        /* Muted green */
@@ -134,7 +139,7 @@ button:active { transform: translateY(0); box-shadow: var(--shadow); }
 
 /* --- MODULAR CARD SYSTEM --- */
 .charge-group-card { 
-  background: white; border: 1px solid var(--border); padding: 0; border-radius: 12px; margin-bottom: 16px; 
+  background: var(--bg-card); border: 1px solid var(--border); padding: 0; border-radius: 12px; margin-bottom: 16px; 
   transition: all 0.2s ease; overflow: hidden; box-shadow: var(--shadow);
 }
 .charge-group-card:hover { box-shadow: var(--shadow-hover); border-color: #d4d4d8; }
@@ -146,7 +151,7 @@ button:active { transform: translateY(0); box-shadow: var(--shadow); }
 .charge-group-card.drag-over { border-top: 3px solid var(--primary); }
 
 .cg-header {
-  background: #fafafa; padding: 12px 16px; border-bottom: 1px solid var(--border);
+  background: #F9FAFB; padding: 12px 16px; border-bottom: 1px solid var(--border);
   display: flex; gap: 12px; align-items: center; justify-content: space-between;
 }
 .cg-title-input { font-weight: 600; color: var(--primary); border: 1px solid transparent; background: transparent; font-size: 14px; width: 200px; box-shadow: none; }
@@ -160,7 +165,7 @@ button:active { transform: translateY(0); box-shadow: var(--shadow); }
   grid-template-columns: 28px 1fr 100px 120px 2.5fr 32px; 
   gap: 12px; align-items: center;
   padding: 8px; border-bottom: 1px solid var(--border-light); 
-  background: white;
+  background: #FFFFFF;
   transition: all 0.15s ease;
   border-radius: 6px;
   margin: 2px 0;
