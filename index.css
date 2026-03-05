@@ -2,18 +2,27 @@
 :root {
   /* Force light color scheme */
   color-scheme: light;
-  --primary: #18181b; /* Zinc 900 */
-  --primary-dark: #09090b; /* Zinc 950 */
-  --secondary: #71717a; /* Zinc 500 */
-  --border: #e4e4e7; /* Zinc 200 */
-  --border-light: #f4f4f5; /* Zinc 100 */
-  --success: #059669; /* Emerald 600 */
-  --danger: #dc2626; /* Red 600 */
-  --warning: #d97706; /* Amber 600 */
-  --bg-body: #f4f4f5; /* Zinc 100 */
+
+  /* Core brand colors – shift away from pure black/white */
+  --primary: #1d4ed8;        /* Indigo 700 */
+  --primary-dark: #1e3a8a;   /* Indigo 900 */
+  --secondary: #64748b;      /* Slate 500 */
+
+  /* Surfaces & borders with a soft blue tint */
+  --border: #e2e8f0;         /* Slate 200 */
+  --border-light: #eff6ff;   /* Indigo 50 */
+  --bg-body: #e5edff;        /* Soft indigo wash */
   --bg-card: #ffffff;
-  --shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-  --shadow-hover: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+
+  /* Semantic accents */
+  --success: #16a34a;        /* Green 600 */
+  --danger: #dc2626;         /* Red 600 */
+  --warning: #d97706;        /* Amber 600 */
+
+  /* Elevation */
+  --shadow: 0 10px 25px rgba(15, 23, 42, 0.06);
+  --shadow-hover: 0 18px 45px rgba(15, 23, 42, 0.12);
+
   --radius: 12px;
 }
 
@@ -22,8 +31,8 @@
 
 body { 
   font-family: 'Inter', system-ui, sans-serif; 
-  background-color: var(--bg-body); 
-  color: #18181b; 
+  background: radial-gradient(circle at top left, #dbeafe 0, var(--bg-body) 40%, #e2e8f0 100%);
+  color: #0f172a; 
   margin: 0; 
   padding: 24px; 
   line-height: 1.5; 
