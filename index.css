@@ -3,28 +3,29 @@
   /* Force light color scheme */
   color-scheme: light;
 
-  /* High-readability, soft blue/gray scheme */
-  --primary: #2563EB;        /* Accent blue for key actions */
-  --primary-dark: #1D4ED8;   /* Darker blue hover state */
-  --secondary: #6B7280;      /* Neutral gray for labels/meta */
-  --text-main: #111827;      /* Main body text (near-black) */
+  /* Color scheme aligned with your HTML prototype */
+  --primary: #2563EB;        /* Accent blue for primary actions */
+  --primary-dark: #1E40AF;   /* Darker blue hover state */
+  --secondary: #64748B;      /* Slate gray for labels/meta */
+  --text-main: #1E293B;      /* Main body text */
 
-  --border: #E5E7EB;         /* Light gray border */
-  --border-light: #F3F4F6;   /* Softer separators */
+  --border: #E2E8F0;         /* Light slate border */
+  --border-light: #F1F5F9;   /* Soft panel background / separators */
 
-  --bg-body: #F3F4F6;        /* App background */
+  --bg-body: #F8FAFC;        /* Page background */
   --bg-card: #FFFFFF;        /* Card surface */
-  --bg-soft: #EFF6FF;        /* Very light blue panels */
-  --bg-highlight: #DBEAFE;   /* Soft blue highlight */
+  --bg-soft: #F1F5F9;        /* Light panels (e.g. headers, inputs) */
+  --bg-highlight: #DBEAFE;   /* Soft blue highlight / selection */
 
-  /* Semantic accents keep clarity but sit in palette */
-  --success: #3B7A57;        /* Muted green */
-  --danger: #B33A3A;         /* Muted red */
-  --warning: #C28A1A;        /* Muted amber */
+  /* Semantic accents matching the HTML version */
+  --success: #10B981;        /* Emerald 500 */
+  --danger: #EF4444;         /* Red 500 */
+  --warning: #F59E0B;        /* Amber 500 */
 
-  /* Elevation tuned for softer, ink-like UI */
-  --shadow: 0 8px 18px rgba(0, 0, 0, 0.06);
-  --shadow-hover: 0 14px 30px rgba(0, 0, 0, 0.10);
+  /* Elevation similar to the standalone page */
+  --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.10),
+            0 2px 4px -2px rgb(0 0 0 / 0.10);
+  --shadow-hover: 0 8px 20px rgba(15, 23, 42, 0.12);
 
   --radius: 12px;
 }
