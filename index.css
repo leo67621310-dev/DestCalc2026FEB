@@ -18,8 +18,8 @@
   --bg-soft: #F1F5F9;        /* Light panels (e.g. headers, inputs) */
   --bg-highlight: #DBEAFE;   /* Soft blue highlight / selection */
 
-  /* Softer blue specifically for table text */
-  --table-text: #60A5FA;     /* Light, less saturated blue */
+  /* Neutral tone for comparison table text */
+  --table-text: #374151;     /* Gray 700 */
 
   /* Semantic accents matching the HTML version */
   --success: #10B981;        /* Emerald 500 */
