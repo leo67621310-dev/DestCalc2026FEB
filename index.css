@@ -3,20 +3,19 @@
   /* Force light color scheme */
   color-scheme: light;
 
-  /* Ink wash palette */
-  --primary: #4A4A4A;        /* Deep neutral for headings/buttons */
-  --primary-dark: #333333;   /* Darker hover state */
-  --secondary: #6D8196;      /* Desaturated blue for accents */
+  /* High-readability, soft blue/gray scheme */
+  --primary: #2563EB;        /* Accent blue for key actions */
+  --primary-dark: #1D4ED8;   /* Darker blue hover state */
+  --secondary: #6B7280;      /* Neutral gray for labels/meta */
+  --text-main: #111827;      /* Main body text (near-black) */
 
-  --border: #CBCBCB;         /* Soft neutral border */
-  --border-light: #E5E5E5;   /* Light surface separators */
+  --border: #E5E7EB;         /* Light gray border */
+  --border-light: #F3F4F6;   /* Softer separators */
 
-  /* Use a neutral, light grey as the main canvas */
-  --bg-body: #F3F4F6;        /* Neutral background */
+  --bg-body: #F3F4F6;        /* App background */
   --bg-card: #FFFFFF;        /* Card surface */
-
-  /* Keep the warm ink-wash yellow only for subtle highlights, not the full page */
-  --bg-highlight: #FFFFE3;   /* Optional highlight surface */
+  --bg-soft: #EFF6FF;        /* Very light blue panels */
+  --bg-highlight: #DBEAFE;   /* Soft blue highlight */
 
   /* Semantic accents keep clarity but sit in palette */
   --success: #3B7A57;        /* Muted green */
@@ -35,9 +34,8 @@
 
 body { 
   font-family: 'Inter', system-ui, sans-serif; 
-  /* Use a simple, calm paper background to avoid harsh gradients */
   background-color: var(--bg-body);
-  color: var(--primary); 
+  color: var(--text-main); 
   margin: 0; 
   padding: 24px; 
   line-height: 1.5; 
@@ -58,7 +56,7 @@ input, select, textarea {
   font-size: 13px; 
   width: 100%; 
   background-color: #ffffff !important; 
-  color: var(--primary) !important;
+  color: var(--text-main) !important;
   transition: all 0.2s ease; 
   box-shadow: var(--shadow);
 }
@@ -89,7 +87,7 @@ input[type="number"], .mono-font {
 
 /* --- HEADER --- */
 .dashboard-header {
-  background: var(--bg-card);
+  background: linear-gradient(135deg, var(--bg-card) 0%, var(--bg-soft) 100%);
   padding: 24px 32px;
   border-radius: var(--radius);
   box-shadow: var(--shadow);
