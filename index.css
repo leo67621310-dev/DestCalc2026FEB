@@ -3,25 +3,24 @@
   /* Force light color scheme */
   color-scheme: light;
 
-  /* Core brand colors – shift away from pure black/white */
-  --primary: #1d4ed8;        /* Indigo 700 */
-  --primary-dark: #1e3a8a;   /* Indigo 900 */
-  --secondary: #64748b;      /* Slate 500 */
+  /* Ink wash palette */
+  --primary: #4A4A4A;        /* Deep neutral for headings/buttons */
+  --primary-dark: #333333;   /* Darker hover state */
+  --secondary: #6D8196;      /* Desaturated blue for accents */
 
-  /* Surfaces & borders with a soft blue tint */
-  --border: #e2e8f0;         /* Slate 200 */
-  --border-light: #eff6ff;   /* Indigo 50 */
-  --bg-body: #e5edff;        /* Soft indigo wash */
-  --bg-card: #ffffff;
+  --border: #CBCBCB;         /* Soft neutral border */
+  --border-light: #F5F5F5;   /* Light surface separators */
+  --bg-body: #FFFFE3;        /* Warm paper background */
+  --bg-card: #ffffff;        /* Card surface */
 
-  /* Semantic accents */
-  --success: #16a34a;        /* Green 600 */
-  --danger: #dc2626;         /* Red 600 */
-  --warning: #d97706;        /* Amber 600 */
+  /* Semantic accents keep clarity but sit in palette */
+  --success: #3B7A57;        /* Muted green */
+  --danger: #B33A3A;         /* Muted red */
+  --warning: #C28A1A;        /* Muted amber */
 
-  /* Elevation */
-  --shadow: 0 10px 25px rgba(15, 23, 42, 0.06);
-  --shadow-hover: 0 18px 45px rgba(15, 23, 42, 0.12);
+  /* Elevation tuned for softer, ink-like UI */
+  --shadow: 0 8px 18px rgba(0, 0, 0, 0.06);
+  --shadow-hover: 0 14px 30px rgba(0, 0, 0, 0.10);
 
   --radius: 12px;
 }
@@ -31,8 +30,8 @@
 
 body { 
   font-family: 'Inter', system-ui, sans-serif; 
-  background: radial-gradient(circle at top left, #dbeafe 0, var(--bg-body) 40%, #e2e8f0 100%);
-  color: #0f172a; 
+  background: radial-gradient(circle at top left, #FFFFE3 0, var(--bg-body) 50%, #CBCBCB 120%);
+  color: var(--primary); 
   margin: 0; 
   padding: 24px; 
   line-height: 1.5; 
@@ -53,7 +52,7 @@ input, select, textarea {
   font-size: 13px; 
   width: 100%; 
   background-color: #ffffff !important; 
-  color: #18181b !important;
+  color: var(--primary) !important;
   transition: all 0.2s ease; 
   box-shadow: var(--shadow);
 }
