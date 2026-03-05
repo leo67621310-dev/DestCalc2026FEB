@@ -4,7 +4,8 @@
   color-scheme: light;
 
   /* Color scheme aligned with your HTML prototype */
-  --primary: #2563EB;        /* Accent blue for primary actions */
+  /* Slightly de-saturated blue for accents */
+  --primary: #1D4ED8;        /* Accent blue for primary actions */
   --primary-dark: #1E40AF;   /* Darker blue hover state */
   --secondary: #64748B;      /* Slate gray for labels/meta */
   --text-main: #1E293B;      /* Main body text */
@@ -101,7 +102,7 @@ input[type="number"], .mono-font {
   gap: 24px;
 }
 .header-row { display: flex; justify-content: space-between; align-items: center; }
-h3 { margin: 0; font-size: 24px; font-weight: 700; color: var(--primary); letter-spacing: -0.02em; }
+h3 { margin: 0; font-size: 24px; font-weight: 700; color: var(--text-main); letter-spacing: -0.02em; }
 
 /* --- INPUTS --- */
 .global-inputs { 
