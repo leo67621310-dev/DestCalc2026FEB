@@ -7,6 +7,25 @@ import { Group, Row, CURRENCIES, CONDITIONS, UNITS } from '../types';
 // relying on browser-specific DataTransfer behaviour.
 let activeDragType: 'group' | 'row' | null = null;
 
+// Simple viewport-edge autoscroll while dragging.
+const AUTO_SCROLL_MARGIN = 80; // px from top/bottom edge
+const AUTO_SCROLL_SPEED = 20;  // px per dragover event
+
+const autoScrollOnDrag = (e: React.DragEvent) => {
+  if (typeof window === 'undefined' || typeof document === 'undefined') return;
+
+  const { clientY } = e;
+  const vh = window.innerHeight;
+
+  if (clientY < AUTO_SCROLL_MARGIN) {
+    // Near top: scroll up
+    window.scrollBy(0, -AUTO_SCROLL_SPEED);
+  } else if (clientY > vh - AUTO_SCROLL_MARGIN) {
+    // Near bottom: scroll down
+    window.scrollBy(0, AUTO_SCROLL_SPEED);
+  }
+};
+
 interface Props {
   prefix: string;
   group: Group;
@@ -30,6 +49,7 @@ export const ChargeGroupCard: React.FC<Props> = ({
     if (activeDragType !== 'group') return;
     e.preventDefault();
     e.currentTarget.classList.add('drag-over');
+    autoScrollOnDrag(e);
   };
 
   const handleDragLeave = (e: React.DragEvent) => {
@@ -60,6 +80,7 @@ export const ChargeGroupCard: React.FC<Props> = ({
     e.preventDefault();
     e.stopPropagation();
     rowEl.classList.add('row-drag-over');
+    autoScrollOnDrag(e);
   }
 
   const handleRowDragLeave = (e: React.DragEvent, rowEl: HTMLElement) => {
