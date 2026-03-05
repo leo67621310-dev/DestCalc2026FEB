@@ -2,6 +2,11 @@ import React, { useRef } from 'react';
 import { GripVertical, X, Clock, Divide, Plus } from 'lucide-react';
 import { Group, Row, CURRENCIES, CONDITIONS, UNITS } from '../types';
 
+// Track what kind of item is currently being dragged within group cards.
+// This lets us separate card-to-card vs row reordering previews without
+// relying on browser-specific DataTransfer behaviour.
+let activeDragType: 'group' | 'row' | null = null;
+
 interface Props {
   prefix: string;
   group: Group;
@@ -22,15 +27,9 @@ export const ChargeGroupCard: React.FC<Props> = ({
   
   const handleDragOver = (e: React.DragEvent) => {
     // Only show group-level preview when a GROUP is being dragged
-    if (!e.dataTransfer.types.includes('text/plain')) return;
-
-    const payload = e.dataTransfer.getData('text/plain') || '';
-    const isGroupDrag = payload.startsWith('group-');
-    
-    if (isGroupDrag) {
-      e.preventDefault();
-      e.currentTarget.classList.add('drag-over');
-    }
+    if (activeDragType !== 'group') return;
+    e.preventDefault();
+    e.currentTarget.classList.add('drag-over');
   };
 
   const handleDragLeave = (e: React.DragEvent) => {
@@ -40,33 +39,27 @@ export const ChargeGroupCard: React.FC<Props> = ({
   const handleDrop = (e: React.DragEvent, rIdx?: number) => {
     e.preventDefault();
     e.stopPropagation();
-
-    const payload = e.dataTransfer.getData('text/plain') || '';
-    const isRowDrag = payload.startsWith('row-');
-    const isGroupDrag = payload.startsWith('group-');
-
     e.currentTarget.classList.remove('drag-over');
 
-    // Route drop based on what is actually being dragged
-    if (rIdx !== undefined && isRowDrag) {
-      onDrop(e, 'row', groupIdx, rIdx);
-    } else if (rIdx === undefined && isGroupDrag) {
-      onDrop(e, 'group', groupIdx);
+    // Route drop based on the active drag type; fall back to original
+    // behaviour if we somehow don't have it.
+    if (rIdx !== undefined) {
+      if (activeDragType === 'row') {
+        onDrop(e, 'row', groupIdx, rIdx);
+      }
+    } else {
+      if (activeDragType === 'group') {
+        onDrop(e, 'group', groupIdx);
+      }
     }
   };
 
   const handleRowDragOver = (e: React.DragEvent, rowEl: HTMLElement) => {
     // Only show row-level preview when a ROW is being dragged
-    if (!e.dataTransfer.types.includes('text/plain')) return;
-
-    const payload = e.dataTransfer.getData('text/plain') || '';
-    const isRowDrag = payload.startsWith('row-');
-
-    if (isRowDrag) {
-      e.preventDefault();
-      e.stopPropagation();
-      rowEl.classList.add('row-drag-over');
-    }
+    if (activeDragType !== 'row') return;
+    e.preventDefault();
+    e.stopPropagation();
+    rowEl.classList.add('row-drag-over');
   }
 
   const handleRowDragLeave = (e: React.DragEvent, rowEl: HTMLElement) => {
@@ -89,6 +82,7 @@ export const ChargeGroupCard: React.FC<Props> = ({
              draggable 
              onDragStart={(e) => { 
                  e.stopPropagation(); 
+                 activeDragType = 'group';
                  e.dataTransfer.setData('text/plain', `group-${prefix}-${groupIdx}`);
                  e.dataTransfer.effectAllowed = 'move';
 
@@ -102,6 +96,7 @@ export const ChargeGroupCard: React.FC<Props> = ({
                  onDragStart(e, 'group', groupIdx); 
              }}
              onDragEnd={(e) => {
+                 activeDragType = null;
                  if (cardRef.current) cardRef.current.classList.remove('dragging');
              }}
              title="Drag to reorder group"
@@ -198,6 +193,7 @@ export const ChargeGroupCard: React.FC<Props> = ({
                   draggable 
                   onDragStart={(e) => { 
                     e.stopPropagation(); 
+                    activeDragType = 'row';
                     e.dataTransfer.effectAllowed = 'move';
                     e.dataTransfer.setData('text/plain', `row-${prefix}-${groupIdx}-${rIdx}`); // Tag payload
                     
@@ -207,6 +203,7 @@ export const ChargeGroupCard: React.FC<Props> = ({
                     onDragStart(e, 'row', groupIdx, rIdx); 
                   }}
                   onDragEnd={(e) => {
+                    activeDragType = null;
                     e.currentTarget.parentElement?.classList.remove('row-dragging');
                   }}
                   title="Drag to reorder row"
