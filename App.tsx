@@ -549,7 +549,7 @@ export default function App() {
                               {
                                 model === 'gemini-3.1-pro-preview'
                                   ? 'Gemini 3.1 Pro'
-                                  : model === 'gemini-3.1-flash-lite'
+                                  : model === 'gemini-3.1-flash-lite-preview'
                                   ? 'Gemini 3.1 Flash Lite'
                                   : model === 'gemini-3-flash-preview'
                                   ? 'Gemini 3.0 Flash'
@@ -671,7 +671,7 @@ export default function App() {
                                 <label style={{ fontSize: '11px', fontWeight: 700, color: 'var(--secondary)', display: 'block', marginBottom: '5px' }}>AI MODEL</label>
                                 <select value={model} onChange={e => setModel(e.target.value)} style={{ width: '100%' }}>
                                     <option value="gemini-3.1-pro-preview">Gemini 3.1 Pro</option>
-                                    <option value="gemini-3.1-flash-lite">Gemini 3.1 Flash Lite</option>
+                                    <option value="gemini-3.1-flash-lite-preview">Gemini 3.1 Flash Lite</option>
                                     <option value="gemini-3-flash-preview">Gemini 3.0 Flash</option>
                                     <option value="gemini-2.5-flash">Gemini 2.5 Flash</option>
                                 </select>
