@@ -99,9 +99,6 @@ input[type="number"], .mono-font {
   border-radius: var(--radius);
   box-shadow: var(--shadow);
   border: 1px solid var(--border);
-  position: sticky;
-  top: 24px;
-  z-index: 40;
   display: flex;
   flex-direction: column;
   gap: 24px;
