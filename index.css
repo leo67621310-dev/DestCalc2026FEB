@@ -31,6 +31,13 @@
   --shadow-hover: 0 10px 30px rgba(15, 23, 42, 0.14);
 
   --radius: 12px;
+
+  /* Motion */
+  --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+  --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --transition-fast: 140ms var(--ease-out-quint);
+  --transition-med: 220ms var(--ease-out-quart);
 }
 
 /* --- RESET & GLOBAL FONTS --- */
@@ -64,7 +71,7 @@ input, select, textarea {
   width: 100%; 
   background-color: #ffffff !important; 
   color: var(--text-main) !important;
-  transition: all 0.2s ease; 
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast), background-color var(--transition-fast), color var(--transition-fast);
   box-shadow: var(--shadow);
 }
 
@@ -146,9 +153,22 @@ h3 {
 .tab-btn.active { background: white; color: var(--primary); border-color: rgba(0,0,0,0.05); box-shadow: var(--shadow); }
 
 /* --- BUTTONS --- */
-button { cursor: pointer; padding: 8px 16px; border: 1px solid transparent; border-radius: 8px; font-weight: 600; font-size: 13px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.2s ease; box-shadow: var(--shadow); }
+button { 
+  cursor: pointer; 
+  padding: 8px 16px; 
+  border: 1px solid transparent; 
+  border-radius: 8px; 
+  font-weight: 600; 
+  font-size: 13px; 
+  display: inline-flex; 
+  align-items: center; 
+  justify-content: center; 
+  gap: 8px; 
+  transition: background-color var(--transition-med), color var(--transition-med), box-shadow var(--transition-med), transform var(--transition-fast), border-color var(--transition-med); 
+  box-shadow: var(--shadow); 
+}
 button:hover { transform: translateY(-1px); box-shadow: var(--shadow-hover); }
-button:active { transform: translateY(0); box-shadow: var(--shadow); }
+button:active { transform: translateY(0); box-shadow: var(--shadow); transform: scale(0.97); }
 .btn-primary { background-color: var(--primary); color: white; }
 .btn-primary:hover { background-color: var(--primary-dark); }
 .btn-success { background-color: var(--success); color: white; }
@@ -162,9 +182,10 @@ button:active { transform: translateY(0); box-shadow: var(--shadow); }
 /* --- MODULAR CARD SYSTEM --- */
 .charge-group-card { 
   background: var(--bg-card); border: 1px solid var(--border); padding: 0; border-radius: 12px; margin-bottom: 16px; 
-  transition: all 0.2s ease; overflow: hidden; box-shadow: var(--shadow);
+  transition: box-shadow var(--transition-med), border-color var(--transition-med), transform var(--transition-med); 
+  overflow: hidden; box-shadow: var(--shadow);
 }
-.charge-group-card:hover { box-shadow: var(--shadow-hover); border-color: #d4d4d8; }
+.charge-group-card:hover { box-shadow: var(--shadow-hover); border-color: #d4d4d8; transform: translateY(-1px); }
 
 .charge-group-card.dragging { 
   opacity: 0.5; border: 1px dashed var(--secondary); background: var(--bg-body); 
@@ -188,7 +209,7 @@ button:active { transform: translateY(0); box-shadow: var(--shadow); }
   gap: 12px; align-items: center;
   padding: 8px; border-bottom: 1px solid var(--border-light); 
   background: #FFFFFF;
-  transition: all 0.15s ease;
+  transition: background-color var(--transition-fast), border-color var(--transition-fast), transform var(--transition-fast), box-shadow var(--transition-fast);
   border-radius: 6px;
   margin: 2px 0;
 }
@@ -372,4 +393,16 @@ button:active { transform: translateY(0); box-shadow: var(--shadow); }
 /* --- TOAST NOTIFICATIONS --- */
 #toast-container { position: fixed; top: 24px; right: 24px; z-index: 1000; }
 .toast { background: var(--primary); color: white; padding: 12px 24px; margin-bottom: 12px; border-radius: 8px; font-size: 14px; font-weight: 500; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); animation: slideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1); display: flex; align-items: center; gap: 12px; }
-@keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+@keyframes slideIn { 
+  from { transform: translateX(100%); opacity: 0; } 
+  to { transform: translateX(0); opacity: 1; } 
+}
+
+/* Respect users who prefer reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
