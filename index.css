@@ -36,8 +36,11 @@
 /* --- RESET & GLOBAL FONTS --- */
 * { box-sizing: border-box; outline: none; }
 
+/* Optional display font for headings (falls back to system if unavailable) */
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap');
+
 body { 
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif; 
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "IBM Plex Sans", sans-serif; 
   background-color: var(--bg-body);
   color: var(--text-main); 
   margin: 0; 
@@ -104,7 +107,20 @@ input[type="number"], .mono-font {
   gap: 24px;
 }
 .header-row { display: flex; justify-content: space-between; align-items: center; }
-h3 { margin: 0; font-size: 24px; font-weight: 700; color: var(--text-main); letter-spacing: -0.02em; }
+h3 { 
+  margin: 0; 
+  font-size: clamp(1.4rem, 1.1rem + 0.6vw, 1.7rem); 
+  font-weight: 700; 
+  color: var(--text-main); 
+  letter-spacing: -0.02em; 
+}
+
+.dashboard-header small {
+  display: block;
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--secondary);
+}
 
 /* --- INPUTS --- */
 .global-inputs { 
@@ -117,7 +133,14 @@ h3 { margin: 0; font-size: 24px; font-weight: 700; color: var(--text-main); lett
 }
 .input-group { display: flex; flex-direction: column; flex: 1; }
 .input-group.narrow { flex: 0 0 120px; }
-.input-group label { font-size: 11px; font-weight: 600; color: var(--secondary); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.05em; }
+.input-group label { 
+  font-size: 11px; 
+  font-weight: 600; 
+  color: var(--secondary); 
+  margin-bottom: 6px; 
+  text-transform: uppercase; 
+  letter-spacing: 0.08em; 
+}
 
 /* --- TABS --- */
 .tabs { display: flex; gap: 4px; margin-bottom: 0; padding: 4px; background: var(--border-light); border-radius: 10px; width: fit-content; border: 1px solid var(--border); }
@@ -231,7 +254,18 @@ button:active { transform: translateY(0); box-shadow: var(--shadow); }
 
 /* --- REPORT STYLING --- */
 .xl-wrapper { margin-top: 40px; }
-.xl-info-box { background: var(--bg-card); border: 1px solid var(--border); padding: 16px 24px; margin-bottom: 24px; border-radius: 8px; font-size: 13px; color: var(--secondary); display: flex; gap: 24px; box-shadow: var(--shadow); }
+.xl-info-box { 
+  background: var(--bg-card); 
+  border: 1px solid var(--border); 
+  padding: 14px 22px; 
+  margin-bottom: 24px; 
+  border-radius: 8px; 
+  font-size: 13px; 
+  color: var(--secondary); 
+  display: flex; 
+  gap: 24px; 
+  box-shadow: var(--shadow); 
+}
 .xl-info-box strong { color: var(--primary); }
 .report-card { background: white; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; height: 100%; box-shadow: var(--shadow); }
 
@@ -292,16 +326,20 @@ button:active { transform: translateY(0); box-shadow: var(--shadow); }
 .col-amt { 
   text-align: right; 
   padding-right: 24px; 
-  font-weight: 500; 
+  font-weight: 600; 
   font-variant-numeric: tabular-nums; 
-  color: var(--text-main); /* Keep amounts high-contrast and neutral */
+  color: var(--text-main);
 }
 .min-highlight { font-weight: 600; color: var(--primary); font-size: 11px; }
 .calc-subtext { display: block; font-size: 11px; color: var(--secondary); margin-top: 4px; font-weight: 500; }
 
 .footer-container { margin-top: auto; border-top: 1px solid var(--border); }
 .footer-section { padding: 16px 24px; }
-.footer-section.totals { background: #fafafa; color: var(--primary); font-weight: 600; }
+.footer-section.totals { 
+  background: #f4f7fb; 
+  color: var(--primary); 
+  font-weight: 700; 
+}
 .footer-section.diffs { 
     background: #ffffff; 
     border-top: 1px dashed var(--border); 
