@@ -142,7 +142,7 @@ export default function App() {
   };
 
   const savePreset = () => {
-    if (!mgrNameInput.trim()) return alert("Name required");
+    if (!mgrNameInput.trim()) return alert("Enter a preset name so you can find it later.");
     const newPresets = { ...savedPresets, [mgrNameInput]: JSON.parse(JSON.stringify(mgrData)) };
     setSavedPresets(newPresets);
     setMgrSelectedKey(mgrNameInput);
@@ -212,7 +212,7 @@ export default function App() {
         showToast(`✅ Added ${newGroups.length} groups.`);
       };
     } catch (err: any) {
-      alert("Error: " + err.message);
+      alert("Scan failed: " + (err?.message || "Something went wrong.") + " Use a clear image of a charges table or try again.");
     } finally {
       setIsScanning(false);
     }
@@ -354,11 +354,11 @@ export default function App() {
            setSidebarCollapsed(false); // Open sidebar to see it
            showToast(`✅ Loaded ${imported.length} records temporarily`);
         } else {
-           alert("Invalid history file format");
+           alert("That file isn't a valid history export. Choose a JSON file previously exported from this app.");
         }
       } catch (err) {
         console.error(err);
-        alert("Failed to parse history file");
+        alert("The file couldn't be read. Make sure it's a valid JSON file exported from this calculator.");
       }
     };
     reader.readAsText(file);
@@ -375,9 +375,9 @@ export default function App() {
 
   const clearCurrentHistory = () => {
       if (historyView === 'saved') {
-          if(confirm("Clear All Saved History?")) setHistory([]);
+          if(confirm("Clear all saved snapshots? This can't be undone.")) setHistory([]);
       } else {
-          if(confirm("Clear Imported View?")) {
+          if(confirm("Clear the imported list? You'll stay on Saved history.")) {
               setImportedHistory([]);
               setHistoryView('saved'); // Switch back after clearing
           }
@@ -457,7 +457,7 @@ export default function App() {
              <table className="xl-table">
                <thead><tr><th className="xl-header col-item">Item</th><th className="xl-header col-desc">Description</th><th className="xl-header col-curr">Cur</th><th className="xl-header col-amt">Amount</th></tr></thead>
                <tbody>
-                  {displayRows.length === 0 && <tr><td colSpan={4} style={{textAlign:'center', padding:'20px', color:'#ccc'}}>No Charges</td></tr>}
+                  {displayRows.length === 0 && <tr><td colSpan={4}><div className="empty-state"><strong>No charge lines yet</strong><p>Add items above or load a preset to see totals and differences here.</p></div></td></tr>}
                   {displayRows.map((r: any, i: number) => {
                     if (r.is_pad) {
                         return (
@@ -557,10 +557,11 @@ export default function App() {
                               }
                           </span>
                       </div>
-                      <span style={{ fontSize: '12px', color: 'var(--secondary)' }}>Comparison & Generation Tool</span>
+                      <span style={{ fontSize: '12px', color: 'var(--secondary)' }}>Compare standard vs requested charges and see what to collect from agent or consignee.</span>
+                      <span style={{ fontSize: '11px', color: 'var(--secondary)', opacity: 0.9, display: 'block', marginTop: '4px' }}>Enter shipment details, load or add charges for Standard and Requested, then check the DIFF totals below.</span>
                   </div>
                   <div style={{ display: 'flex', gap: '10px' }}>
-                      <button className="btn-danger" onClick={() => { if(confirm('Reset all data?')) { localStorage.removeItem(STORAGE_KEY); location.reload(); }}} style={{ fontSize: '11px', padding: '6px 10px' }}><AlertTriangle size={14} /> Reset App</button>
+                      <button className="btn-danger" onClick={() => { if(confirm('Reset all data? Your presets and history will be cleared. This can\'t be undone.')) { localStorage.removeItem(STORAGE_KEY); location.reload(); }}} style={{ fontSize: '11px', padding: '6px 10px' }}><AlertTriangle size={14} /> Reset App</button>
                       <button className="btn-secondary" onClick={() => setSidebarCollapsed(!sidebarCollapsed)}>
                           <HistoryIcon size={16} /> History
                       </button>
@@ -585,7 +586,7 @@ export default function App() {
                       <input type="number" value={globals.pkgs} onChange={e => setGlobals({...globals, pkgs: parseFloat(e.target.value)})} step="1" />
                   </div>
                   <div className="input-group" style={{ flex: '0 0 auto', paddingBottom: '1px' }}>
-                      <button className="btn-primary" onClick={saveToHistory} title="Save Snapshot">
+                      <button className="btn-primary" onClick={saveToHistory} title="Save this comparison to history">
                           <Camera size={16} /> Snap
                       </button>
                   </div>
@@ -608,7 +609,7 @@ export default function App() {
                    </select>
                    <button className="btn-warning" onClick={() => loadPresetToTab('std', (document.getElementById('std-load-select') as HTMLSelectElement).value)}>Load Preset</button>
                    <button className="btn-info" style={{ marginLeft: '10px' }} onClick={() => document.getElementById('scan-std')?.click()}>
-                       <Bot size={16} /> Scan / Paste (Ctrl+V) {isScanning && '(Processing...)'}
+                       <Bot size={16} /> {isScanning ? 'Scanning…' : 'Scan image or paste (Ctrl+V)'}
                    </button>
                    <input id="scan-std" type="file" style={{display:'none'}} accept="image/*" onChange={(e) => handleFileScan(e, 'std')} />
                 </div>
@@ -624,7 +625,7 @@ export default function App() {
                    </select>
                    <button className="btn-warning" onClick={() => loadPresetToTab('req', (document.getElementById('req-load-select') as HTMLSelectElement).value)}>Load Preset</button>
                    <button className="btn-info" style={{ marginLeft: '10px' }} onClick={() => document.getElementById('scan-req')?.click()}>
-                       <Bot size={16} /> Scan / Paste (Ctrl+V) {isScanning && '(Processing...)'}
+                       <Bot size={16} /> {isScanning ? 'Scanning…' : 'Scan image or paste (Ctrl+V)'}
                    </button>
                    <input id="scan-req" type="file" style={{display:'none'}} accept="image/*" onChange={(e) => handleFileScan(e, 'req')} />
                 </div>
@@ -635,7 +636,7 @@ export default function App() {
            {activeTab === 'mgr' && (
              <div>
                  <div style={{ background: '#fffbeb', color: '#92400e', padding: '12px', borderRadius: '6px', fontSize: '13px', border: '1px solid #fcd34d', marginBottom: '20px' }}>
-                    <strong>Tip:</strong> Select "Create New..." to start fresh, or select an existing preset to edit it. Changes are Auto-Saved.
+                    <strong>Presets:</strong> Choose <strong>Create New...</strong> to add a preset from scratch, or pick an existing one to edit. Saving overwrites that preset.
                  </div>
                  <div style={{ display: 'flex', gap: '15px', alignItems: 'flex-end', marginBottom: '20px' }}>
                     <div className="input-group" style={{ flex: 1 }}>
@@ -647,10 +648,10 @@ export default function App() {
                     </div>
                     <div className="input-group" style={{ flex: 1 }}>
                         <label>Preset Name</label>
-                        <input type="text" value={mgrNameInput} onChange={(e) => setMgrNameInput(e.target.value)} disabled={mgrSelectedKey !== 'Create New...'} placeholder="Enter Preset Name" />
+                        <input type="text" value={mgrNameInput} onChange={(e) => setMgrNameInput(e.target.value)} disabled={mgrSelectedKey !== 'Create New...'} placeholder="e.g. EU Dest 2024" />
                     </div>
                     <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-end' }}>
-                         <button className="btn-info" onClick={() => document.getElementById('scan-mgr')?.click()} title="Scan into this Preset"><Bot size={16} /> Scan / Paste</button>
+                         <button className="btn-info" onClick={() => document.getElementById('scan-mgr')?.click()} title="Add charges from a photo or pasted image"><Bot size={16} /> {isScanning ? 'Scanning…' : 'Scan image or paste (Ctrl+V)'}</button>
                          <input id="scan-mgr" type="file" style={{display:'none'}} accept="image/*" onChange={(e) => handleFileScan(e, 'mgr')} />
                          <button className="btn-success" onClick={savePreset}>Save Preset</button>
                          <button className="btn-danger" onClick={deletePreset}>Delete</button>
@@ -711,20 +712,20 @@ export default function App() {
            )}
 
            {/* OUTPUT */}
-           <div style={{ marginTop: '30px', borderTop: '1px solid var(--border)', paddingTop: '25px', display: 'flex', gap: '15px', alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap' }}>
+           <div className="output-controls" style={{ marginTop: '30px', borderTop: '1px solid var(--border)', paddingTop: '25px', display: 'flex', gap: '15px', alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <label style={{ fontSize: '13px', fontWeight: 600, color: 'var(--secondary)' }}>VIEW MODE:</label>
+                    <label style={{ fontSize: '13px', fontWeight: 600, color: 'var(--secondary)' }}>Report view</label>
                     <select value={viewMode} onChange={(e) => setViewMode(e.target.value)} style={{ width: '220px' }}>
-                        <option value="Comparison">Side-by-Side Comparison</option>
-                        <option value="Standard">Standard Only</option>
-                        <option value="Requested">Requested Only</option>
+                        <option value="Comparison">Side-by-side (standard vs requested)</option>
+                        <option value="Standard">Standard only</option>
+                        <option value="Requested">Requested only</option>
                     </select>
                 </div>
                 {viewMode === 'Comparison' && (
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginLeft: '10px', paddingLeft: '20px', borderLeft: '1px solid var(--border)' }}>
                         <label style={{ fontSize: '13px', fontWeight: 600, color: 'var(--secondary)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>
                             <input type="checkbox" checked={showInlineDiff} onChange={e => setShowInlineDiff(e.target.checked)} style={{ width: '16px', height: '16px', margin: 0, cursor: 'pointer', boxShadow: 'none' }} />
-                            Highlight Differences
+                            Highlight row differences
                         </label>
                     </div>
                 )}
@@ -781,7 +782,21 @@ export default function App() {
             <input type="text" placeholder="Search Ref#..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} style={{ marginBottom: '15px' }} />
             
             <div id="history-list">
-                {activeHistoryList.filter(h => h.ref.toLowerCase().includes(searchTerm.toLowerCase())).length === 0 && <div style={{ color: '#ccc', textAlign: 'center', marginTop: '20px' }}>No {historyView} History</div>}
+                {activeHistoryList.filter(h => h.ref.toLowerCase().includes(searchTerm.toLowerCase())).length === 0 && (
+                <div className="empty-state" style={{ marginTop: '20px' }}>
+                  {historyView === 'saved' ? (
+                    <>
+                      <strong>No snapshots yet</strong>
+                      <p>Compare standard vs requested charges, then click <strong>Snap</strong> to save a snapshot here for quick recall.</p>
+                    </>
+                  ) : (
+                    <>
+                      <strong>No imported file loaded</strong>
+                      <p>Use <strong>Import</strong> to load a history JSON from another device. It appears here temporarily and won't replace your saved history.</p>
+                    </>
+                  )}
+                </div>
+              )}
                 {activeHistoryList.filter(h => h.ref.toLowerCase().includes(searchTerm.toLowerCase())).map(h => {
                     return (
                         <div key={h.id} className="history-card" onClick={() => loadHist(h)}>
