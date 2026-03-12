@@ -381,14 +381,49 @@ button:active { transform: translateY(0); box-shadow: var(--shadow); transform: 
 .btn-hist-del { position: absolute; top: 12px; right: 12px; background: transparent; border: none; width: 28px; height: 28px; cursor: pointer; color: var(--secondary); display:flex; align-items:center; justify-content:center; box-shadow: none; }
 .btn-hist-del:hover { color: var(--danger); background: #fee2e2; border-radius: 6px; transform: none; box-shadow: none; }
 
+/* --- ADAPT: Responsive & touch-friendly --- */
 @media (max-width: 900px) { 
-  .app-wrapper { flex-direction: column; } 
-  .main-content, .history-sidebar { width: 100%; }
+  body { padding: 16px; }
+  .app-wrapper { flex-direction: column; gap: 16px; } 
+  .main-content, .history-sidebar { width: 100%; min-width: 0; }
+  .history-sidebar { min-width: 0; max-height: none; position: static; }
   .comparison-container { flex-direction: column; } 
-  .cg-row, .cg-header-row { grid-template-columns: 28px 1fr 100px 80px 2.5fr 32px; gap: 8px; }
+  .cg-row, .cg-header-row { grid-template-columns: 28px 1fr 80px 70px 1.5fr 36px; gap: 8px; }
   .min-settings-box { flex-direction: column; align-items: stretch; }
-  .dashboard-header { position: static; }
+  .dashboard-header { padding: 16px 20px; }
+  .global-inputs { gap: 16px; padding-top: 16px; }
+  .input-group.narrow { flex: 1 1 80px; min-width: 0; }
+  .tabs { width: 100%; flex-wrap: wrap; }
+  .tab-btn { flex: 1; min-width: 0; padding: 10px 12px; font-size: 12px; }
+  /* Touch targets ≥44px for interactive controls */
+  button { min-height: 44px; padding: 10px 16px; }
+  .btn-icon-only { width: 44px; height: 44px; min-width: 44px; min-height: 44px; }
+  .btn-hist-del { width: 44px; height: 44px; min-width: 44px; min-height: 44px; top: 8px; right: 8px; }
+  .sidebar-tab { min-height: 44px; padding: 12px 8px; }
 }
+
+@media (max-width: 600px) {
+  body { padding: 12px; }
+  .header-row { flex-direction: column; align-items: flex-start; gap: 12px; }
+  .global-inputs { flex-direction: column; align-items: stretch; }
+  .input-group { border-right: none !important; padding-right: 0 !important; margin-right: 0 !important; }
+  .input-group.narrow { flex: 1 1 auto; }
+  .tabs { flex-direction: column; }
+  .tab-btn { width: 100%; }
+  .xl-info-box { flex-wrap: wrap; padding: 12px 16px; font-size: 12px; }
+  .table-title, .xl-header, .xl-row td { padding-left: 12px; padding-right: 12px; }
+  .footer-section { padding: 12px 16px; }
+  /* Allow horizontal scroll for table on very small screens */
+  .table-wrapper { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .xl-table { min-width: 320px; }
+}
+
+/* Output controls wrap and stay readable on narrow */
+.output-controls { flex-wrap: wrap; gap: 12px; }
+.empty-state { text-align: center; padding: 32px 24px; color: var(--secondary); font-size: 13px; line-height: 1.6; }
+.empty-state strong { display: block; color: var(--text-main); font-size: 14px; margin-bottom: 8px; }
+.empty-state p { margin: 0 0 8px; max-width: 360px; margin-left: auto; margin-right: auto; }
+.empty-state .hint { font-size: 12px; margin-top: 12px; opacity: 0.9; }
 
 /* --- TOAST NOTIFICATIONS --- */
 #toast-container { position: fixed; top: 24px; right: 24px; z-index: 1000; }
