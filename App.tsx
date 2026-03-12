@@ -34,6 +34,7 @@ export default function App() {
   
   const [toast, setToast] = useState<string | null>(null);
   const [isScanning, setIsScanning] = useState(false);
+  const [lastScanFeedback, setLastScanFeedback] = useState<{ count: number; target: 'std' | 'req' | 'mgr'; groupIds: string[] } | null>(null);
 
   // --- DRAG STATE ---
   const dragItem = useRef<{ type: 'group' | 'row', prefix: string, gIdx: number, rIdx?: number } | null>(null);
@@ -59,6 +60,12 @@ export default function App() {
     const state = { std: stdData, req: reqData, presets: savedPresets, history, globals };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   }, [stdData, reqData, savedPresets, history, globals]);
+
+  useEffect(() => {
+    if (!lastScanFeedback) return;
+    const t = setTimeout(() => setLastScanFeedback(null), 4500);
+    return () => clearTimeout(t);
+  }, [lastScanFeedback]);
 
   // --- HELPERS ---
   const showToast = (msg: string) => {
@@ -210,6 +217,7 @@ export default function App() {
 
         addGroupsToTarget(prefix, newGroups);
         showToast(`✅ Added ${newGroups.length} groups.`);
+        setLastScanFeedback({ count: newGroups.length, target: prefix as 'std' | 'req' | 'mgr', groupIds: newGroups.map((gr: Group) => gr.id) });
       };
     } catch (err: any) {
       alert("Scan failed: " + (err?.message || "Something went wrong.") + " Use a clear image of a charges table or try again.");
@@ -406,6 +414,7 @@ export default function App() {
                     prefix={prefix}
                     group={g}
                     groupIdx={i}
+                    isNewlyAdded={lastScanFeedback?.target === prefix && lastScanFeedback?.groupIds?.includes(g.id)}
                     onUpdateGroup={(idx, f, v) => handleUpdateGroup(prefix, idx, f, v)}
                     onRemoveGroup={(idx) => removeGroup(prefix, idx)}
                     onUpdateRow={(gi, ri, f, v) => handleUpdateRow(prefix, gi, ri, f, v)}
@@ -603,7 +612,7 @@ export default function App() {
            {/* TAB CONTENT */}
            {activeTab === 'std' && (
              <div>
-                <div style={{ display: 'flex', gap: '10px', alignItems: 'center', marginBottom: '15px' }}>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', alignItems: 'center', marginBottom: '15px' }}>
                    <select id="std-load-select" style={{ maxWidth: '300px' }}>
                       {Object.keys(savedPresets).map(k => <option key={k} value={k}>{k}</option>)}
                    </select>
@@ -613,13 +622,16 @@ export default function App() {
                    </button>
                    <input id="scan-std" type="file" style={{display:'none'}} accept="image/*" onChange={(e) => handleFileScan(e, 'std')} />
                 </div>
+                {lastScanFeedback?.target === 'std' && (
+                   <div className="scan-feedback" role="status">{lastScanFeedback.count === 1 ? 'Added 1 charge group from image.' : `Added ${lastScanFeedback.count} charge groups from image.`}</div>
+                )}
                 {renderEditor('std')}
              </div>
            )}
 
            {activeTab === 'req' && (
              <div>
-                <div style={{ display: 'flex', gap: '10px', alignItems: 'center', marginBottom: '15px' }}>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', alignItems: 'center', marginBottom: '15px' }}>
                    <select id="req-load-select" style={{ maxWidth: '300px' }}>
                       {Object.keys(savedPresets).map(k => <option key={k} value={k}>{k}</option>)}
                    </select>
@@ -629,6 +641,9 @@ export default function App() {
                    </button>
                    <input id="scan-req" type="file" style={{display:'none'}} accept="image/*" onChange={(e) => handleFileScan(e, 'req')} />
                 </div>
+                {lastScanFeedback?.target === 'req' && (
+                   <div className="scan-feedback" role="status">{lastScanFeedback.count === 1 ? 'Added 1 charge group from image.' : `Added ${lastScanFeedback.count} charge groups from image.`}</div>
+                )}
                 {renderEditor('req')}
              </div>
            )}
@@ -657,6 +672,9 @@ export default function App() {
                          <button className="btn-danger" onClick={deletePreset}>Delete</button>
                     </div>
                  </div>
+                 {lastScanFeedback?.target === 'mgr' && (
+                   <div className="scan-feedback" role="status" style={{ marginBottom: '16px' }}>{lastScanFeedback.count === 1 ? 'Added 1 charge group from image.' : `Added ${lastScanFeedback.count} charge groups from image.`}</div>
+                 )}
                  <hr style={{ border: 0, borderTop: '1px solid var(--border)', margin: '20px 0' }} />
                  {renderEditor('mgr')}
 
@@ -731,7 +749,7 @@ export default function App() {
                 )}
            </div>
            
-           <div className="xl-wrapper" style={{marginTop:'30px'}}>
+           <div className={`xl-wrapper ${viewMode !== 'Comparison' ? 'report-single' : ''}`} style={{marginTop:'30px'}}>
               <div className="xl-info-box"><strong>SHIPMENT DETAILS:</strong>&nbsp;&nbsp; CBM: {globals.cbm.toFixed(3)} &nbsp;|&nbsp; KGS: {globals.kgs.toFixed(3)} &nbsp;|&nbsp; PKGS: {globals.pkgs}</div>
               {viewMode === 'Comparison' && (
                   <div className="comparison-container">
