@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap');
+
 /* --- VARIABLES --- */
 :root {
   /* Force light color scheme */
@@ -42,9 +44,6 @@
 
 /* --- RESET & GLOBAL FONTS --- */
 * { box-sizing: border-box; outline: none; }
-
-/* Optional display font for headings (falls back to system if unavailable) */
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap');
 
 body { 
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "IBM Plex Sans", sans-serif; 
@@ -186,6 +185,27 @@ button:active { transform: translateY(0); box-shadow: var(--shadow); transform: 
   overflow: hidden; box-shadow: var(--shadow);
 }
 .charge-group-card:hover { box-shadow: var(--shadow-hover); border-color: #d4d4d8; transform: translateY(-1px); }
+.charge-group-card.just-scanned { animation: scanHighlight 2.5s ease-out forwards; }
+@keyframes scanHighlight {
+  0% { box-shadow: 0 0 0 2px var(--primary); background: var(--bg-highlight); }
+  60% { box-shadow: 0 0 0 2px var(--primary); background: var(--bg-highlight); }
+  100% { box-shadow: var(--shadow); background: var(--bg-card); }
+}
+
+.scan-feedback {
+  font-size: 12px;
+  color: var(--primary);
+  font-weight: 500;
+  padding: 8px 12px;
+  background: var(--bg-highlight);
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  animation: scanFeedbackIn 0.25s ease-out;
+}
+@keyframes scanFeedbackIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
 
 .charge-group-card.dragging { 
   opacity: 0.5; border: 1px dashed var(--secondary); background: var(--bg-body); 
@@ -302,25 +322,29 @@ button:active { transform: translateY(0); box-shadow: var(--shadow); transform: 
   align-items: center;
 }
 
-.table-wrapper { flex: 1; display: flex; flex-direction: column; }
-.xl-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.table-wrapper { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+.xl-table { width: 100%; border-collapse: collapse; font-size: 13px; table-layout: fixed; }
+.xl-table .col-item { width: 18%; }
+.xl-table .col-desc { width: 42%; }
+.xl-table .col-curr { width: 10%; }
+.xl-table .col-amt { width: 20%; min-width: 5rem; }
 
 .xl-header { 
   background: #fafafa; 
   color: var(--table-text); 
   font-weight: 600; 
   text-align: left; 
-  padding: 12px 24px; 
+  padding: 10px 16px; 
   border-bottom: 1px solid var(--border); 
   text-transform: uppercase; 
   font-size: 11px; 
   letter-spacing: 0.05em; 
 }
 .xl-header.col-curr { text-align: center; }
-.xl-header.col-amt { text-align: right; padding-right: 24px; }
+.xl-header.col-amt { text-align: right; padding-right: 16px; }
 
 .xl-row td { 
-  padding: 12px 24px; 
+  padding: 10px 16px; 
   border-bottom: 1px solid var(--border-light); 
   vertical-align: middle; 
   transition: background-color 0.2s ease; 
@@ -343,7 +367,7 @@ button:active { transform: translateY(0); box-shadow: var(--shadow); transform: 
 
 .col-amt { 
   text-align: right; 
-  padding-right: 24px; 
+  padding-right: 16px; 
   font-weight: 600; 
   font-variant-numeric: tabular-nums; 
   color: var(--text-main);
@@ -370,8 +394,11 @@ button:active { transform: translateY(0); box-shadow: var(--shadow); transform: 
 .stat-lbl { color: inherit; text-transform: uppercase; font-size: 12px; letter-spacing: 0.05em; }
 .stat-val { font-weight: 600; font-variant-numeric: tabular-nums; }
 
-.comparison-container { display: flex; gap: 24px; }
-.comparison-col { flex: 1; display: flex; flex-direction: column; }
+/* Report table density: constrain width so columns don't stretch on wide screens */
+.report-card { max-width: 560px; }
+.comparison-container { display: flex; gap: 24px; justify-content: flex-start; }
+.comparison-col { flex: 1; display: flex; flex-direction: column; min-width: 0; max-width: 560px; }
+.xl-wrapper.report-single .report-card { max-width: 720px; }
 
 /* --- HISTORY --- */
 .history-card { background: white; border: 1px solid var(--border); border-left: 4px solid var(--primary); padding: 16px; margin-bottom: 12px; border-radius: 8px; cursor: pointer; position: relative; transition: all 0.2s ease; box-shadow: var(--shadow); }
