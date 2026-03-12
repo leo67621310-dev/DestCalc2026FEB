@@ -30,6 +30,7 @@ interface Props {
   prefix: string;
   group: Group;
   groupIdx: number;
+  isNewlyAdded?: boolean;
   onUpdateGroup: (idx: number, field: keyof Group, val: any) => void;
   onRemoveGroup: (idx: number) => void;
   onUpdateRow: (gIdx: number, rIdx: number, field: keyof Row, val: any) => void;
@@ -40,7 +41,7 @@ interface Props {
 }
 
 export const ChargeGroupCard: React.FC<Props> = ({
-  prefix, group, groupIdx, onUpdateGroup, onRemoveGroup, onUpdateRow, onRemoveRow, onAddRow, onDragStart, onDrop
+  prefix, group, groupIdx, isNewlyAdded, onUpdateGroup, onRemoveGroup, onUpdateRow, onRemoveRow, onAddRow, onDragStart, onDrop
 }) => {
   const cardRef = useRef<HTMLDivElement>(null);
   
@@ -90,7 +91,7 @@ export const ChargeGroupCard: React.FC<Props> = ({
   return (
     <div 
       ref={cardRef}
-      className="charge-group-card"
+      className={`charge-group-card${isNewlyAdded ? ' just-scanned' : ''}`}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={(e) => handleDrop(e)}
