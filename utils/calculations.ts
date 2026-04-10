@@ -42,6 +42,12 @@ export function calculateCharges(cbm: number, kgs: number, pkgs: number, groups:
     else if (u === 'PKG') qty = pkgs;
     else if (u === 'BL' || u === 'SHPT' || u === 'FLAT') qty = 1;
     
+    // ROUND UP LOGIC
+    if (r.round_up && typeof r.round_up_decimals === 'number') {
+      const factor = Math.pow(10, r.round_up_decimals);
+      qty = Math.ceil(qty * factor) / factor;
+    }
+    
     // DIVISOR LOGIC
     let div = divisor;
     
