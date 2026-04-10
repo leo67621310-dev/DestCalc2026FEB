@@ -42,7 +42,9 @@ export default async function handler(req: any, res: any) {
                     divisor: { type: Type.NUMBER },
                     unit: { type: Type.STRING },
                     condition: { type: Type.STRING, enum: ["NONE", "MIN", "HEAVY", "LIGHT", "OVER_5X"] },
-                    desc: { type: Type.STRING }
+                    desc: { type: Type.STRING },
+                    round_up: { type: Type.BOOLEAN },
+                    round_up_decimals: { type: Type.NUMBER }
                   }
                 }
               }
@@ -88,8 +90,10 @@ export default async function handler(req: any, res: any) {
                          - If a charge adds a percentage to the specific item/group (e.g. 'Fuel Surcharge on Freight'), use unit '% ITEM'.
                          - If a charge adds a percentage to the entire invoice total (e.g. 'VAT', 'ERS', 'Exchange Rate Surcharge', 'Collect Fee'), use unit '% TOTAL'.
                          - 'Collect Fee' is usually MAX(% TOTAL, Min Flat).
-                      7. CURRENCY:
-                         - Use 3-letter ISO Currency Codes (e.g. EUR, USD, GBP, RMB).` 
+                      7. ROUNDING:
+                         - If the image specifies that a weight/cbm/RT must be "rounded up to a full hundred kgs" or similar, set 'round_up'=true and 'round_up_decimals' to the appropriate decimal place (e.g. 1 for 0.1 tons, 0 for whole numbers). For "rounded up to a full hundred kgs" when unit is TON, set round_up_decimals=1.
+                      8. CURRENCY:
+                         - Use 3-letter ISO Currency Codes (e.g. EUR, USD, HKD, RMB).` 
           }
         ]
       },
