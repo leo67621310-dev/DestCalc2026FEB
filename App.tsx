@@ -109,7 +109,7 @@ export default function App() {
   const addRow = (prefix: string, gIdx: number) => {
     const { data, set } = getTarget(prefix);
     const newGroups = [...data.groups];
-    newGroups[gIdx].rows.push({ rate: 0, divisor: 1, use_divisor: false, unit: 'FLAT', condition: 'NONE', min_type: 'AMT', min_qty: 0 });
+    newGroups[gIdx].rows.push({ rate: 0, divisor: 1, use_divisor: false, unit: 'FLAT', condition: 'NONE', min_type: 'AMT', min_qty: 0, round_up: false, round_up_decimals: 0 });
     set({ ...data, groups: newGroups });
   };
 
@@ -211,7 +211,9 @@ export default function App() {
                 unit: (r.unit || 'FLAT').toUpperCase().replace('M3','CBM').replace('KG','KGS').replace('TONS','TON').replace('LS','FLAT').replace('SHIPMENT','SHPT').replace('% GROUP', '% ITEM'),
                 condition: r.condition || 'NONE',
                 min_type: 'AMT',
-                min_qty: 0
+                min_qty: 0,
+                round_up: r.round_up || false,
+                round_up_decimals: r.round_up_decimals !== undefined ? r.round_up_decimals : 0
             }))
         }));
 
