@@ -111,6 +111,10 @@ export function calculateCharges(cbm: number, kgs: number, pkgs: number, groups:
       desc += `/${r.unit}`;
     }
     
+    if (r.round_up && typeof r.round_up_decimals === 'number') {
+      desc += ` (ROUND UP TO ${r.round_up_decimals} DEC)`;
+    }
+    
     if (r.condition === 'MIN') desc = `MIN ${currency} ${amt.toFixed(2)}`;
     else {
       if (r.condition === 'HEAVY') desc += ' (Heavy)';
