@@ -225,7 +225,7 @@ button:active { transform: translateY(0); box-shadow: var(--shadow); transform: 
 
 .cg-row { 
   display: grid; 
-  grid-template-columns: 28px 1fr 100px 120px 2.5fr 32px; 
+  grid-template-columns: 28px 1fr 100px 120px 70px 2.5fr 32px; 
   gap: 12px; align-items: center;
   padding: 8px; border-bottom: 1px solid var(--border-light); 
   background: #FFFFFF;
@@ -248,7 +248,7 @@ button:active { transform: translateY(0); box-shadow: var(--shadow); transform: 
 }
 
 .cg-header-row {
-  display: grid; grid-template-columns: 28px 1fr 100px 120px 2.5fr 32px; gap: 12px;
+  display: grid; grid-template-columns: 28px 1fr 100px 120px 70px 2.5fr 32px; gap: 12px;
   padding: 4px 16px; font-size: 10px; font-weight: 600; color: var(--secondary); margin-top: 4px; letter-spacing: 0.05em; text-transform: uppercase;
 }
 
@@ -415,7 +415,7 @@ button:active { transform: translateY(0); box-shadow: var(--shadow); transform: 
   .main-content, .history-sidebar { width: 100%; min-width: 0; }
   .history-sidebar { min-width: 0; max-height: none; position: static; }
   .comparison-container { flex-direction: column; } 
-  .cg-row, .cg-header-row { grid-template-columns: 28px 1fr 80px 70px 1.5fr 36px; gap: 8px; }
+  .cg-row, .cg-header-row { grid-template-columns: 28px 1fr 80px 70px 60px 1.5fr 36px; gap: 8px; }
   .min-settings-box { flex-direction: column; align-items: stretch; }
   .dashboard-header { padding: 16px 20px; }
   .global-inputs { gap: 16px; padding-top: 16px; }
