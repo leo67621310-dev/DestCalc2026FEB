@@ -186,7 +186,7 @@ export const ChargeGroupCard: React.FC<Props> = ({
       {/* BODY */}
       <div className="cg-body">
         <div className="cg-header-row">
-          <span></span><span>RATE</span><span>UNIT</span><span>CONDITION</span><span>MIN SETTINGS</span><span></span>
+          <span></span><span>RATE</span><span>UNIT</span><span>CONDITION</span><span>ROUND</span><span>MIN SETTINGS</span><span></span>
         </div>
 
         {group.rows.map((row, rIdx) => {
@@ -292,6 +292,37 @@ export const ChargeGroupCard: React.FC<Props> = ({
                 >
                   {Object.entries(CONDITIONS).map(([k,v]) => <option key={k} value={k}>{v}</option>)}
                 </select>
+
+                {['CBM', 'TON', 'RT', 'KGS'].includes(row.unit) ? (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <input 
+                      type="checkbox" 
+                      checked={!!row.round_up} 
+                      onChange={(e) => {
+                        onUpdateRow(groupIdx, rIdx, 'round_up', e.target.checked);
+                        if (e.target.checked && row.round_up_decimals === undefined) {
+                          onUpdateRow(groupIdx, rIdx, 'round_up_decimals', 0);
+                        }
+                      }} 
+                      title="Round up unit"
+                      style={{ width: '14px', height: '14px', margin: 0, cursor: 'pointer' }}
+                    />
+                    {row.round_up && (
+                      <select 
+                        value={row.round_up_decimals || 0} 
+                        onChange={(e) => onUpdateRow(groupIdx, rIdx, 'round_up_decimals', parseInt(e.target.value))}
+                        style={{ width: '40px', padding: '2px', fontSize: '10px' }}
+                        title="Decimal places"
+                      >
+                        <option value={0}>0</option>
+                        <option value={1}>1</option>
+                        <option value={2}>2</option>
+                      </select>
+                    )}
+                  </div>
+                ) : (
+                  <div></div>
+                )}
 
                 <div>
                   <div className={minBoxClass}>
