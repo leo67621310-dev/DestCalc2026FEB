@@ -22,6 +22,15 @@
   /* Neutral tone for comparison table text */
   --table-text: oklch(0.4 0.03 250);
 
+  /* Secondary accent — Requested column / requested-only report (muted blue-teal, low chroma) */
+  --accent-requested-text: oklch(0.38 0.065 198);
+  --accent-requested-soft: oklch(0.97 0.018 198);
+  --accent-requested-border: oklch(0.86 0.03 198);
+  --accent-requested-muted: oklch(0.5 0.085 198);
+
+  /* Subtle tint for Standard panel in side-by-side (pairs with primary blue) */
+  --accent-standard-soft: oklch(0.985 0.012 255);
+
   /* Alternating table rows — neutral grey (no blue tint), slightly darker than #fafafa for contrast */
   --table-zebra: oklch(0.935 0 0);
   --table-zebra-hover: oklch(0.88 0 0);
@@ -326,6 +335,12 @@ button:active { transform: translateY(0); box-shadow: var(--shadow); transform: 
   align-items: center;
 }
 
+.report-card--requested .table-title.table-title--requested {
+  background: var(--accent-requested-soft);
+  color: var(--accent-requested-text);
+  border-bottom-color: var(--accent-requested-border);
+}
+
 .table-wrapper { flex: 1; display: flex; flex-direction: column; min-width: 0; }
 .xl-table { width: 100%; border-collapse: collapse; font-size: 13px; table-layout: fixed; }
 /* Item | Description (wide for multi-condition lines) | Cur (minimal, hug amount) | Amount */
@@ -422,6 +437,14 @@ button:active { transform: translateY(0); box-shadow: var(--shadow); transform: 
   color: var(--primary); 
   font-weight: 700; 
 }
+
+.report-card--requested .footer-section.totals {
+  background: color-mix(in oklch, var(--accent-requested-soft) 88%, white);
+  color: var(--accent-requested-text);
+}
+.report-card--requested .min-highlight {
+  color: var(--accent-requested-muted);
+}
 .footer-section.diffs { 
     background: #ffffff; 
     border-top: 1px dashed var(--border); 
@@ -489,8 +512,26 @@ button:active { transform: translateY(0); box-shadow: var(--shadow); transform: 
   text-align: center;
   font-size: 13px;
 }
+.xl-table-comparison .comparison-panel-standard {
+  background: var(--accent-standard-soft);
+  color: var(--primary);
+  border-bottom: 1px solid var(--border);
+}
+.xl-table-comparison .comparison-panel-requested {
+  background: var(--accent-requested-soft);
+  color: var(--accent-requested-text);
+  border-bottom: 1px solid var(--accent-requested-border);
+}
+.xl-table-comparison thead tr:nth-child(2) th.comparison-subheader-requested {
+  background: color-mix(in oklch, var(--accent-requested-soft) 75%, white);
+  color: var(--accent-requested-text);
+  border-bottom-color: var(--accent-requested-border);
+}
 .xl-table-comparison .comparison-divider {
-  border-left: 2px solid var(--border);
+  border-left: 2px solid var(--accent-requested-border);
+}
+.xl-table-comparison tbody tr.comparison-pair-row td:nth-child(n + 5) .min-highlight {
+  color: var(--accent-requested-muted);
 }
 .xl-table-comparison td,
 .xl-table-comparison th {
@@ -512,10 +553,25 @@ button:active { transform: translateY(0); box-shadow: var(--shadow); transform: 
   border-top: 2px solid var(--border);
   background: #f4f7fb;
 }
+.comparison-footer-row td.comparison-footer-requested {
+  background: var(--accent-requested-soft);
+}
+.comparison-footer-cell.comparison-footer-requested .footer-section.totals {
+  background: transparent;
+  color: var(--accent-requested-text);
+}
 .comparison-footer-cell .footer-section.diffs {
   border-top: 1px dashed var(--border);
   margin-top: 8px;
   padding-top: 8px;
+}
+.comparison-footer-cell.comparison-footer-requested .footer-section.diffs {
+  background: #ffffff;
+  color: var(--warning);
+}
+
+.xl-table-comparison tr.comparison-expanded-row td.comparison-divider {
+  background: color-mix(in oklch, var(--accent-requested-soft) 40%, #f8fafc);
 }
 
 /* --- HISTORY --- */

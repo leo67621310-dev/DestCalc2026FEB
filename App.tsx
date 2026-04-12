@@ -482,7 +482,15 @@ export default function App() {
     setExpandedRows(prev => ({ ...prev, [id]: !prev[id] }));
   };
 
-  const renderReportTable = (res: any, title: string, showDiff: boolean, diffRes?: any, minRows?: number, activeCurrencies: string[] = []) => {
+  const renderReportTable = (
+    res: any,
+    title: string,
+    showDiff: boolean,
+    diffRes?: any,
+    minRows?: number,
+    activeCurrencies: string[] = [],
+    reportVariant: 'standard' | 'requested' = 'standard',
+  ) => {
       // Use passed activeCurrencies for consistent footer height/alignment
       // If not passed (single view), fall back to active in current result
       const currenciesToShow = activeCurrencies.length > 0 
@@ -499,8 +507,11 @@ export default function App() {
       }
 
       return (
-        <div className="report-card" id={`report-${title.replace(/\s+/g, '-')}`}>
-           <div className="table-title">
+        <div
+          className={`report-card${reportVariant === 'requested' ? ' report-card--requested' : ''}`}
+          id={`report-${title.replace(/\s+/g, '-')}`}
+        >
+           <div className={`table-title${reportVariant === 'requested' ? ' table-title--requested' : ''}`}>
                {title}
            </div>
            <div className="table-wrapper">
@@ -627,18 +638,18 @@ export default function App() {
           <table className="xl-table xl-table-comparison">
             <thead>
               <tr>
-                <th className="xl-header comparison-panel-title" colSpan={4}>{stdData.title.toUpperCase()}</th>
-                <th className="xl-header comparison-panel-title comparison-divider" colSpan={4}>{reqData.title.toUpperCase()}</th>
+                <th className="xl-header comparison-panel-title comparison-panel-standard" colSpan={4}>{stdData.title.toUpperCase()}</th>
+                <th className="xl-header comparison-panel-title comparison-divider comparison-panel-requested" colSpan={4}>{reqData.title.toUpperCase()}</th>
               </tr>
               <tr>
                 <th className="xl-header col-item">Item</th>
                 <th className="xl-header col-desc">Description</th>
                 <th className="xl-header col-curr">Cur</th>
                 <th className="xl-header col-amt">Amount</th>
-                <th className="xl-header col-item comparison-divider">Item</th>
-                <th className="xl-header col-desc">Description</th>
-                <th className="xl-header col-curr">Cur</th>
-                <th className="xl-header col-amt">Amount</th>
+                <th className="xl-header col-item comparison-divider comparison-subheader-requested">Item</th>
+                <th className="xl-header col-desc comparison-subheader-requested">Description</th>
+                <th className="xl-header col-curr comparison-subheader-requested">Cur</th>
+                <th className="xl-header col-amt comparison-subheader-requested">Amount</th>
               </tr>
             </thead>
             <tbody>
@@ -760,7 +771,7 @@ export default function App() {
                     )}
                   </div>
                 </td>
-                <td colSpan={4} className="comparison-footer-cell comparison-divider">
+                <td colSpan={4} className="comparison-footer-cell comparison-divider comparison-footer-requested">
                   <div className="footer-section totals">
                     {currenciesReq.length > 0 ? (
                       currenciesReq.map(c => (
@@ -1014,7 +1025,7 @@ export default function App() {
               <div className="xl-info-box"><strong>SHIPMENT DETAILS:</strong>&nbsp;&nbsp; CBM: {globals.cbm.toFixed(3)} &nbsp;|&nbsp; KGS: {globals.kgs.toFixed(3)} &nbsp;|&nbsp; PKGS: {globals.pkgs}</div>
               {viewMode === 'Comparison' && renderComparisonTable()}
               {viewMode === 'Standard' && renderReportTable(stdRes, stdData.title, false)}
-              {viewMode === 'Requested' && renderReportTable(reqRes, reqData.title, false)}
+              {viewMode === 'Requested' && renderReportTable(reqRes, reqData.title, false, undefined, undefined, [], 'requested')}
            </div>
 
         </div>
