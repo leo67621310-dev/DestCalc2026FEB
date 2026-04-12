@@ -30,7 +30,9 @@ export function calculateCharges(cbm: number, kgs: number, pkgs: number, groups:
       let desc = `${rate}% of ${typeLabel} (${currency} ${amt.toFixed(2)})`;
       if (appliedMin) desc += ` [Min: ${minVal}]`;
       
-      return { amt, desc, met: true, is_min: false, cond: 'NONE', unit: u, is_pct: true };
+      let calc_string = `${rate}% of ${base.toFixed(2)} = ${amt.toFixed(2)}`;
+      
+      return { amt, desc, met: true, is_min: false, cond: 'NONE', unit: u, is_pct: true, calc_string };
     }
 
     // 2. Standard Unit Handling
@@ -42,6 +44,7 @@ export function calculateCharges(cbm: number, kgs: number, pkgs: number, groups:
     else if (u === 'PKG') qty = pkgs;
     else if (u === 'BL' || u === 'SHPT' || u === 'FLAT') qty = 1;
     
+    let original_qty = qty;
     // ROUND UP LOGIC
     if (r.round_up && typeof r.round_up_decimals === 'number') {
       const factor = Math.pow(10, r.round_up_decimals);
@@ -115,21 +118,36 @@ export function calculateCharges(cbm: number, kgs: number, pkgs: number, groups:
       desc += ` (ROUND UP TO ${r.round_up_decimals} DEC)`;
     }
     
-    if (r.condition === 'MIN') desc = `MIN ${currency} ${amt.toFixed(2)}`;
-    else {
+    let calc_string = "";
+    if (r.condition === 'MIN') {
+        desc = `MIN ${currency} ${amt.toFixed(2)}`;
+        calc_string = `Fixed Minimum: ${amt.toFixed(2)}`;
+    } else {
       if (r.condition === 'HEAVY') desc += ' (Heavy)';
       else if (r.condition === 'LIGHT') desc += ' (Light)';
       else if (r.condition === 'OVER_5X') desc += ' (>5x)';
       desc += desc_suffix;
+      
+      calc_string = `${original_qty.toFixed(3)} ${u}`;
+      if (r.round_up && typeof r.round_up_decimals === 'number') {
+          calc_string += ` -> rounded up to ${qty.toFixed(r.round_up_decimals)} ${u}`;
+      }
+      if (div !== 1) {
+          calc_string += ` ÷ ${div} = ${billableUnits.toFixed(3)} billable`;
+      }
+      calc_string += ` × ${rate} = ${amt.toFixed(2)}`;
+      if (minVal > 0 && amt === minVal && mType === 'AMT') {
+          calc_string += ` (Minimum applied)`;
+      }
     }
 
-    return { amt, desc, met, is_min: r.condition === 'MIN', cond: r.condition, unit: u, is_pct: false };
+    return { amt, desc, met, is_min: r.condition === 'MIN', cond: r.condition, unit: u, is_pct: false, calc_string };
   }
 
   // --- HELPER: Resolve Candidates ---
   function resolveCandidates(candidates: any[], logic: string, multiplier_active: boolean, multiplier_value: number) {
     let active = candidates.filter(c => c.met);
-    if (active.length === 0) return { val: 0, desc: '', subtext: '', winner: null };
+    if (active.length === 0) return { val: 0, desc: '', subtext: '', winner: null, all_candidates: candidates };
     
     let val = 0;
     let final_desc = "";
@@ -159,8 +177,10 @@ export function calculateCharges(cbm: number, kgs: number, pkgs: number, groups:
       val *= multiplier_value;
       if (val > 0) subtext += ` [x${multiplier_value}]`;
     }
+    
+    candidates.forEach(c => c.is_winner = (c === winner || logic === 'SUM'));
 
-    return { val, desc: final_desc, subtext, winner };
+    return { val, desc: final_desc, subtext, winner, all_candidates: candidates };
   }
 
   let group_context = groups.map((g, idx) => {
@@ -232,7 +252,8 @@ export function calculateCharges(cbm: number, kgs: number, pkgs: number, groups:
         amount: final_val,
         originalIndex: ctx.idx,
         isPctTotal: is_pct_total_group,
-        subtext: subtext
+        subtext: subtext,
+        candidates: is_pct_total_group ? undefined : ctx.local_res.all_candidates
       });
     }
   });
