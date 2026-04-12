@@ -514,9 +514,8 @@ button:active { transform: scale(0.96); box-shadow: var(--shadow); }
 /* --- MODULAR CARD SYSTEM --- */
 .charge-group-card { 
   background: var(--bg-card); border: 1px solid var(--border); padding: 0; border-radius: 12px; margin-bottom: 16px; 
-  transition: box-shadow var(--transition-med), border-color var(--transition-med), transform var(--transition-med); 
+  transition: box-shadow var(--transition-med), border-color var(--transition-med); 
   overflow: hidden; box-shadow: var(--shadow);
-  animation: slideInUp 0.4s var(--ease-out-expo) backwards;
 }
 .charge-group-card:hover { box-shadow: var(--shadow-hover); border-color: var(--border-muted); transform: translateY(-1px); }
 .charge-group-card.just-scanned { animation: scanHighlight 2.5s ease-out forwards; }
@@ -542,13 +541,8 @@ button:active { transform: scale(0.96); box-shadow: var(--shadow); }
 }
 
 .charge-group-card.dragging { 
-  opacity: 0.95; 
-  border: 1px solid var(--primary); 
-  background: var(--surface-panel); 
-  cursor: grabbing; 
-  box-shadow: var(--shadow-drag);
-  transform: scale(1.02) !important;
-  z-index: 100;
+  opacity: 0.5; border: 1px dashed var(--secondary); background: var(--bg-body); 
+  cursor: grabbing; box-shadow: none;
 }
 .charge-group-card.drag-over { border-top: 3px solid var(--primary); }
 
@@ -623,21 +617,14 @@ button:active { transform: scale(0.96); box-shadow: var(--shadow); }
   gap: 12px; align-items: center;
   padding: 8px; border-bottom: 1px solid var(--border-light); 
   background: #FFFFFF;
-  transition: background-color var(--transition-fast), border-color var(--transition-fast), transform var(--transition-fast), box-shadow var(--transition-fast);
+  transition: background-color var(--transition-fast), border-color var(--transition-fast);
   border-radius: 6px;
   margin: 2px 0;
-  animation: slideInRight 0.3s var(--ease-out-quart) backwards;
 }
 .cg-row:last-child { border-bottom: none; }
 
 .cg-row.dragging {
-  background: var(--surface-panel) !important;
-  box-shadow: var(--shadow-drag) !important;
-  transform: scale(1.02) !important;
-  z-index: 100;
-  border-radius: 8px;
-  border: 1px solid var(--primary) !important;
-  opacity: 0.95;
+  opacity: 0.5; background: var(--bg-highlight);
 }
 .cg-row.row-dragging {
   opacity: 0.4;
