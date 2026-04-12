@@ -43,7 +43,10 @@
   /* Elevation */
   --shadow: 0 4px 6px -1px rgb(15 23 42 / 0.10),
             0 2px 4px -2px rgb(15 23 42 / 0.10);
-  --shadow-hover: 0 10px 30px rgba(15, 23, 42, 0.14);
+  --shadow-hover: 0 10px 25px -5px rgb(15 23 42 / 0.15),
+                  0 8px 10px -6px rgb(15 23 42 / 0.10);
+  --shadow-drag: 0 20px 25px -5px rgb(15 23 42 / 0.20),
+                 0 10px 10px -5px rgb(15 23 42 / 0.10);
 
   --radius: 12px;
 
@@ -51,8 +54,10 @@
   --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
   --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
-  --transition-fast: 140ms var(--ease-out-quint);
-  --transition-med: 220ms var(--ease-out-quart);
+  --ease-out-back: cubic-bezier(0.34, 1.56, 0.64, 1); /* Use sparingly */
+  --transition-fast: 150ms var(--ease-out-quint);
+  --transition-med: 250ms var(--ease-out-quart);
+  --transition-slow: 400ms var(--ease-out-expo);
 
   /* Spacing scale — use in layout utilities & panels */
   --space-1: 4px;
@@ -87,6 +92,41 @@
 /* --- RESET & GLOBAL FONTS --- */
 * { box-sizing: border-box; outline: none; }
 
+/* --- ANIMATIONS --- */
+@keyframes slideInUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(-12px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes toastEnter {
+  0% { opacity: 0; transform: translateY(20px) scale(0.95); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes popIn {
+  0% { opacity: 0; transform: scale(0.95); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
 body { 
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "IBM Plex Sans", sans-serif; 
   background-color: var(--bg-body);
@@ -118,7 +158,8 @@ input, select, textarea {
 
 input:focus, select:focus { 
   border-color: var(--primary); 
-  box-shadow: 0 0 0 1px var(--primary); 
+  box-shadow: 0 0 0 3px var(--ring-primary-soft); 
+  outline: none;
 }
 
 input[type="number"], .mono-font { 
@@ -447,9 +488,10 @@ button {
   gap: 8px; 
   transition: background-color var(--transition-med), color var(--transition-med), box-shadow var(--transition-med), transform var(--transition-fast), border-color var(--transition-med); 
   box-shadow: var(--shadow); 
+  will-change: transform;
 }
 button:hover { transform: translateY(-1px); box-shadow: var(--shadow-hover); }
-button:active { transform: translateY(0); box-shadow: var(--shadow); transform: scale(0.97); }
+button:active { transform: scale(0.96); box-shadow: var(--shadow); }
 .btn-primary { background-color: var(--primary); color: white; }
 .btn-primary:hover { background-color: var(--primary-dark); }
 .btn-success { background-color: var(--success); color: white; }
@@ -460,11 +502,21 @@ button:active { transform: translateY(0); box-shadow: var(--shadow); transform: 
 .btn-secondary { background-color: white; border: 1px solid var(--border); color: var(--primary); }
 .btn-secondary:hover { background-color: var(--bg-body); }
 
+/* Icon Buttons */
+.btn-icon-only { padding: 6px; background: var(--border-light); color: var(--secondary); border-radius: 6px; box-shadow: none; border: 1px solid transparent; }
+.btn-icon-only:hover { background: var(--border); color: var(--text-main); box-shadow: var(--shadow); }
+.btn-icon-only.btn-danger:hover { background: var(--danger); color: white; }
+.btn-icon-only--outlined { background: transparent; border: 1px solid var(--border); }
+.btn-icon-only--outlined:hover { background: var(--surface-panel); border-color: var(--primary); color: var(--primary); }
+.btn-icon-only--danger { background: transparent; border: 1px solid var(--border); color: var(--secondary); }
+.btn-icon-only--danger:hover { background: var(--danger); border-color: var(--danger); color: white; }
+
 /* --- MODULAR CARD SYSTEM --- */
 .charge-group-card { 
   background: var(--bg-card); border: 1px solid var(--border); padding: 0; border-radius: 12px; margin-bottom: 16px; 
   transition: box-shadow var(--transition-med), border-color var(--transition-med), transform var(--transition-med); 
   overflow: hidden; box-shadow: var(--shadow);
+  animation: slideInUp 0.4s var(--ease-out-expo) backwards;
 }
 .charge-group-card:hover { box-shadow: var(--shadow-hover); border-color: var(--border-muted); transform: translateY(-1px); }
 .charge-group-card.just-scanned { animation: scanHighlight 2.5s ease-out forwards; }
@@ -490,8 +542,13 @@ button:active { transform: translateY(0); box-shadow: var(--shadow); transform: 
 }
 
 .charge-group-card.dragging { 
-  opacity: 0.5; border: 1px dashed var(--secondary); background: var(--bg-body); 
-  cursor: grabbing; box-shadow: none;
+  opacity: 0.95; 
+  border: 1px solid var(--primary); 
+  background: var(--surface-panel); 
+  cursor: grabbing; 
+  box-shadow: var(--shadow-drag);
+  transform: scale(1.02) !important;
+  z-index: 100;
 }
 .charge-group-card.drag-over { border-top: 3px solid var(--primary); }
 
@@ -569,9 +626,19 @@ button:active { transform: translateY(0); box-shadow: var(--shadow); transform: 
   transition: background-color var(--transition-fast), border-color var(--transition-fast), transform var(--transition-fast), box-shadow var(--transition-fast);
   border-radius: 6px;
   margin: 2px 0;
+  animation: slideInRight 0.3s var(--ease-out-quart) backwards;
 }
 .cg-row:last-child { border-bottom: none; }
 
+.cg-row.dragging {
+  background: var(--surface-panel) !important;
+  box-shadow: var(--shadow-drag) !important;
+  transform: scale(1.02) !important;
+  z-index: 100;
+  border-radius: 8px;
+  border: 1px solid var(--primary) !important;
+  opacity: 0.95;
+}
 .cg-row.row-dragging {
   opacity: 0.4;
   background: var(--border-light) !important;
