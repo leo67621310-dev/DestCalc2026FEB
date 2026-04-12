@@ -6,6 +6,8 @@ export interface Row {
   condition: string;
   min_type: 'AMT' | 'QTY';
   min_qty: number;
+  round_up?: boolean;
+  round_up_decimals?: number;
 }
 
 export interface Group {
@@ -43,6 +45,14 @@ export interface CalculationResult {
   meta: { cbm: number; kgs: number; pkgs: number };
 }
 
+export interface CandidateDetail {
+  desc: string;
+  amt: number;
+  met: boolean;
+  is_winner: boolean;
+  calc_string: string;
+}
+
 export interface CalculatedRow {
   item: string;
   desc: string;
@@ -52,6 +62,7 @@ export interface CalculatedRow {
   isPctTotal: boolean;
   subtext?: string;
   is_pad?: boolean;
+  candidates?: CandidateDetail[];
 }
 
 export const CURRENCIES = ['EUR', 'USD', 'HKD', 'RMB'];
@@ -67,35 +78,35 @@ export const UNITS = ['FLAT', 'SHPT', 'RT', 'CBM', 'TON', 'KGS', 'PKG', 'BL', '%
 export const CHARGE_TEMPLATES: Record<string, Group> = {
   "EMPTY": {
     id: "", title: "NEW CHARGE", logic: "MAX", currency: "EUR", multiplier_active: false, multiplier_value: 1,
-    rows: [{ rate: 0, divisor: 1, use_divisor: false, unit: "FLAT", condition: "NONE", min_type: "AMT", min_qty: 0 }]
+    rows: [{ rate: 0, divisor: 1, use_divisor: false, unit: "FLAT", condition: "NONE", min_type: "AMT", min_qty: 0, round_up: false, round_up_decimals: 0 }]
   },
   "LCL CHARGES": {
       id: "", title: "LCL CHARGES", logic: "MAX", currency: "EUR", multiplier_active: false, multiplier_value: 1,
       rows: [
-          { rate: 0, divisor: 1, use_divisor: false, unit: "CBM", condition: "NONE", min_type: "AMT", min_qty: 0 },
-          { rate: 0, divisor: 1, use_divisor: false, unit: "TON", condition: "NONE", min_type: "AMT", min_qty: 0 },
-          { rate: 0, divisor: 1, use_divisor: false, unit: "SHPT", condition: "MIN", min_type: "AMT", min_qty: 0 }
+          { rate: 0, divisor: 1, use_divisor: false, unit: "CBM", condition: "NONE", min_type: "AMT", min_qty: 0, round_up: false, round_up_decimals: 0 },
+          { rate: 0, divisor: 1, use_divisor: false, unit: "TON", condition: "NONE", min_type: "AMT", min_qty: 0, round_up: false, round_up_decimals: 0 },
+          { rate: 0, divisor: 1, use_divisor: false, unit: "SHPT", condition: "MIN", min_type: "AMT", min_qty: 0, round_up: false, round_up_decimals: 0 }
       ]
   },
   "PIER CHARGES": {
       id: "", title: "PIER CHARGES", logic: "MAX", currency: "EUR", multiplier_active: false, multiplier_value: 1,
       rows: [
-          { rate: 0, divisor: 1, use_divisor: false, unit: "TON", condition: "HEAVY", min_type: "AMT", min_qty: 0 },
-          { rate: 0, divisor: 1, use_divisor: false, unit: "TON", condition: "LIGHT", min_type: "AMT", min_qty: 0 },
-          { rate: 0, divisor: 1, use_divisor: false, unit: "RT", condition: "OVER_5X", min_type: "AMT", min_qty: 0 },
-          { rate: 0, divisor: 1, use_divisor: false, unit: "SHPT", condition: "MIN", min_type: "AMT", min_qty: 0 }
+          { rate: 0, divisor: 1, use_divisor: false, unit: "TON", condition: "HEAVY", min_type: "AMT", min_qty: 0, round_up: false, round_up_decimals: 0 },
+          { rate: 0, divisor: 1, use_divisor: false, unit: "TON", condition: "LIGHT", min_type: "AMT", min_qty: 0, round_up: false, round_up_decimals: 0 },
+          { rate: 0, divisor: 1, use_divisor: false, unit: "RT", condition: "OVER_5X", min_type: "AMT", min_qty: 0, round_up: false, round_up_decimals: 0 },
+          { rate: 0, divisor: 1, use_divisor: false, unit: "SHPT", condition: "MIN", min_type: "AMT", min_qty: 0, round_up: false, round_up_decimals: 0 }
       ]
   },
   "STORAGE": {
       id: "", title: "STORAGE", logic: "SUM", currency: "EUR", multiplier_active: true, multiplier_value: 3,
       rows: [
-          { rate: 0, divisor: 1, use_divisor: false, unit: "RT", condition: "NONE", min_type: "AMT", min_qty: 0 }
+          { rate: 0, divisor: 1, use_divisor: false, unit: "RT", condition: "NONE", min_type: "AMT", min_qty: 0, round_up: false, round_up_decimals: 0 }
       ]
   },
   "DELIVERY ORDER": {
       id: "", title: "DELIVERY ORDER", logic: "SUM", currency: "EUR", multiplier_active: false, multiplier_value: 1,
       rows: [
-          { rate: 0, divisor: 1, use_divisor: false, unit: "BL", condition: "NONE", min_type: "AMT", min_qty: 0 }
+          { rate: 0, divisor: 1, use_divisor: false, unit: "BL", condition: "NONE", min_type: "AMT", min_qty: 0, round_up: false, round_up_decimals: 0 }
       ]
   }
 };

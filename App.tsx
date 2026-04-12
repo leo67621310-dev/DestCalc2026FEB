@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { AlertTriangle, History as HistoryIcon, Camera, Bot, Settings, ChevronUp, ChevronDown, Download, Upload, Trash2, X, Plus } from 'lucide-react';
+import { AlertTriangle, History as HistoryIcon, Camera, Bot, Settings, ChevronUp, ChevronDown, Download, Upload, Trash2, X, Plus, Image as ImageIcon } from 'lucide-react';
+import html2canvas from 'html2canvas';
 import { ChargeData, Group, HistoryItem, CHARGE_TEMPLATES, CURRENCIES, DEFAULT_PRESETS, PresetsMap } from './types';
 import { calculateCharges } from './utils/calculations';
 import { ChargeGroupCard } from './components/ChargeGroupCard';
@@ -109,7 +110,7 @@ export default function App() {
   const addRow = (prefix: string, gIdx: number) => {
     const { data, set } = getTarget(prefix);
     const newGroups = [...data.groups];
-    newGroups[gIdx].rows.push({ rate: 0, divisor: 1, use_divisor: false, unit: 'FLAT', condition: 'NONE', min_type: 'AMT', min_qty: 0 });
+    newGroups[gIdx].rows.push({ rate: 0, divisor: 1, use_divisor: false, unit: 'FLAT', condition: 'NONE', min_type: 'AMT', min_qty: 0, round_up: false, round_up_decimals: 0 });
     set({ ...data, groups: newGroups });
   };
 
@@ -211,7 +212,9 @@ export default function App() {
                 unit: (r.unit || 'FLAT').toUpperCase().replace('M3','CBM').replace('KG','KGS').replace('TONS','TON').replace('LS','FLAT').replace('SHIPMENT','SHPT').replace('% GROUP', '% ITEM'),
                 condition: r.condition || 'NONE',
                 min_type: 'AMT',
-                min_qty: 0
+                min_qty: 0,
+                round_up: r.round_up || false,
+                round_up_decimals: r.round_up_decimals !== undefined ? r.round_up_decimals : 0
             }))
         }));
 
@@ -395,6 +398,23 @@ export default function App() {
   // Determine active list for sidebar
   const activeHistoryList = historyView === 'saved' ? history : importedHistory;
 
+  // --- EXPORT IMAGE ---
+  const exportAsImage = async (elementId: string, filename: string) => {
+    const el = document.getElementById(elementId);
+    if (!el) return;
+    try {
+      const canvas = await html2canvas(el, { scale: 2, backgroundColor: '#ffffff' });
+      const url = canvas.toDataURL('image/jpeg', 0.9);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      a.click();
+    } catch (err) {
+      console.error(err);
+      alert('Failed to export image');
+    }
+  };
+
   // --- RENDERERS ---
   const renderEditor = (prefix: string) => {
       const { data, set } = getTarget(prefix);
@@ -443,6 +463,12 @@ export default function App() {
       );
   };
 
+  const [expandedRows, setExpandedRows] = useState<Record<string, boolean>>({});
+
+  const toggleRow = (id: string) => {
+    setExpandedRows(prev => ({ ...prev, [id]: !prev[id] }));
+  };
+
   const renderReportTable = (res: any, title: string, showDiff: boolean, diffRes?: any, minRows?: number, activeCurrencies: string[] = []) => {
       // Use passed activeCurrencies for consistent footer height/alignment
       // If not passed (single view), fall back to active in current result
@@ -460,8 +486,10 @@ export default function App() {
       }
 
       return (
-        <div className="report-card">
-           <div className="table-title">{title}</div>
+        <div className="report-card" id={`report-${title.replace(/\s+/g, '-')}`}>
+           <div className="table-title">
+               {title}
+           </div>
            <div className="table-wrapper">
              <table className="xl-table">
                <thead><tr><th className="xl-header col-item">Item</th><th className="xl-header col-desc">Description</th><th className="xl-header col-curr">Cur</th><th className="xl-header col-amt">Amount</th></tr></thead>
@@ -493,8 +521,21 @@ export default function App() {
                     }
 
                     return (
-                        <tr key={i} className={`xl-row ${diffClass}`}>
-                        <td className="col-item">{r.item}</td>
+                        <React.Fragment key={i}>
+                        <tr 
+                            className={`xl-row ${diffClass} ${r.candidates && r.candidates.length > 0 ? 'expandable' : ''}`}
+                            onClick={() => {
+                                if (r.candidates && r.candidates.length > 0) {
+                                    toggleRow(`${title}-${i}`);
+                                }
+                            }}
+                        >
+                        <td className="col-item">
+                            {r.candidates && r.candidates.length > 0 && (
+                                <span className="expand-icon">{expandedRows[`${title}-${i}`] ? <ChevronDown size={14} /> : <ChevronUp size={14} />}</span>
+                            )}
+                            {r.item}
+                        </td>
                         <td className="col-desc">
                             {r.desc}
                             {r.subtext && <span className="calc-subtext"><span className="min-highlight">{r.subtext}</span></span>}
@@ -505,6 +546,26 @@ export default function App() {
                             {diffAmountStr && <span style={{ fontSize: '11px', marginLeft: '6px', opacity: 0.8 }}>{diffAmountStr}</span>}
                         </td>
                         </tr>
+                        {expandedRows[`${title}-${i}`] && r.candidates && (
+                            <tr className="xl-row expanded-details-row">
+                                <td colSpan={4} style={{ padding: 0 }}>
+                                    <div className="expanded-details">
+                                        <div className="expanded-header">Calculation Details</div>
+                                        {r.candidates.map((c: any, cIdx: number) => (
+                                            <div key={cIdx} className={`candidate-item ${c.is_winner ? 'winner' : ''}`}>
+                                                <div className="candidate-desc">
+                                                    <strong>{c.cond !== 'NONE' ? `[${c.cond}] ` : ''}</strong>
+                                                    {c.desc}
+                                                    {c.is_winner && <span className="winner-badge">Applied</span>}
+                                                </div>
+                                                <div className="candidate-calc">{c.calc_string}</div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </td>
+                            </tr>
+                        )}
+                        </React.Fragment>
                     )
                   })}
                </tbody>
@@ -747,9 +808,14 @@ export default function App() {
                         </label>
                     </div>
                 )}
+                <div style={{ marginLeft: 'auto' }}>
+                    <button className="btn-secondary" onClick={() => exportAsImage('full-report-area', `Freight-Report-${globals.ref || 'Export'}.jpg`)}>
+                        <ImageIcon size={16} /> Export Report to JPG
+                    </button>
+                </div>
            </div>
            
-           <div className={`xl-wrapper ${viewMode !== 'Comparison' ? 'report-single' : ''}`} style={{marginTop:'30px'}}>
+           <div id="full-report-area" className={`xl-wrapper ${viewMode !== 'Comparison' ? 'report-single' : ''}`} style={{marginTop:'20px', padding: '20px', backgroundColor: 'var(--bg-body)', borderRadius: '12px'}}>
               <div className="xl-info-box"><strong>SHIPMENT DETAILS:</strong>&nbsp;&nbsp; CBM: {globals.cbm.toFixed(3)} &nbsp;|&nbsp; KGS: {globals.kgs.toFixed(3)} &nbsp;|&nbsp; PKGS: {globals.pkgs}</div>
               {viewMode === 'Comparison' && (
                   <div className="comparison-container">
