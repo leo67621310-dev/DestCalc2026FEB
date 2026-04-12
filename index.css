@@ -324,10 +324,21 @@ button:active { transform: translateY(0); box-shadow: var(--shadow); transform: 
 
 .table-wrapper { flex: 1; display: flex; flex-direction: column; min-width: 0; }
 .xl-table { width: 100%; border-collapse: collapse; font-size: 13px; table-layout: fixed; }
-.xl-table .col-item { width: 18%; }
-.xl-table .col-desc { width: 42%; }
-.xl-table .col-curr { width: 10%; }
-.xl-table .col-amt { width: 20%; min-width: 5rem; }
+/* Item | Description (wide for multi-condition lines) | Cur (minimal) | Amount */
+.xl-table .col-item { width: 14%; }
+.xl-table .col-desc {
+  width: 56%;
+  min-width: 0;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+.xl-table .col-curr {
+  width: 5%;
+  max-width: 3.25rem;
+  padding-left: 8px;
+  padding-right: 8px;
+}
+.xl-table .col-amt { width: 19%; min-width: 4.25rem; }
 
 .xl-header { 
   background: #fafafa; 
@@ -340,7 +351,7 @@ button:active { transform: translateY(0); box-shadow: var(--shadow); transform: 
   font-size: 11px; 
   letter-spacing: 0.05em; 
 }
-.xl-header.col-curr { text-align: center; }
+.xl-header.col-curr { text-align: center; max-width: 3.25rem; padding-left: 8px; padding-right: 8px; }
 .xl-header.col-amt { text-align: right; padding-right: 16px; }
 
 .xl-row td { 
