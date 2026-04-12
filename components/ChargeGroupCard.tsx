@@ -1,30 +1,7 @@
-import React, { useRef } from 'react';
+import React from 'react';
 import { GripVertical, X, Clock, Divide, Plus } from 'lucide-react';
 import { Group, Row, CURRENCIES, CONDITIONS, UNITS } from '../types';
-
-// Track what kind of item is currently being dragged within group cards.
-// This lets us separate card-to-card vs row reordering previews without
-// relying on browser-specific DataTransfer behaviour.
-let activeDragType: 'group' | 'row' | null = null;
-
-// Simple viewport-edge autoscroll while dragging.
-const AUTO_SCROLL_MARGIN = 80; // px from top/bottom edge
-const AUTO_SCROLL_SPEED = 20;  // px per dragover event
-
-const autoScrollOnDrag = (e: React.DragEvent) => {
-  if (typeof window === 'undefined' || typeof document === 'undefined') return;
-
-  const { clientY } = e;
-  const vh = window.innerHeight;
-
-  if (clientY < AUTO_SCROLL_MARGIN) {
-    // Near top: scroll up
-    window.scrollBy(0, -AUTO_SCROLL_SPEED);
-  } else if (clientY > vh - AUTO_SCROLL_MARGIN) {
-    // Near bottom: scroll down
-    window.scrollBy(0, AUTO_SCROLL_SPEED);
-  }
-};
+import { Draggable, Droppable } from '@hello-pangea/dnd';
 
 interface Props {
   prefix: string;
@@ -36,95 +13,30 @@ interface Props {
   onUpdateRow: (gIdx: number, rIdx: number, field: keyof Row, val: any) => void;
   onRemoveRow: (gIdx: number, rIdx: number) => void;
   onAddRow: (gIdx: number) => void;
-  onDragStart: (e: React.DragEvent, type: 'group' | 'row', gIdx: number, rIdx?: number) => void;
-  onDrop: (e: React.DragEvent, type: 'group' | 'row', gIdx: number, rIdx?: number) => void;
 }
 
 export const ChargeGroupCard: React.FC<Props> = ({
-  prefix, group, groupIdx, isNewlyAdded, onUpdateGroup, onRemoveGroup, onUpdateRow, onRemoveRow, onAddRow, onDragStart, onDrop
+  prefix, group, groupIdx, isNewlyAdded, onUpdateGroup, onRemoveGroup, onUpdateRow, onRemoveRow, onAddRow
 }) => {
-  const cardRef = useRef<HTMLDivElement>(null);
-  
-  const handleDragOver = (e: React.DragEvent) => {
-    // Only show group-level preview when a GROUP is being dragged
-    if (activeDragType !== 'group') return;
-    e.preventDefault();
-    e.currentTarget.classList.add('drag-over');
-    autoScrollOnDrag(e);
-  };
-
-  const handleDragLeave = (e: React.DragEvent) => {
-    e.currentTarget.classList.remove('drag-over');
-  };
-
-  const handleDrop = (e: React.DragEvent, rIdx?: number) => {
-    e.preventDefault();
-    e.stopPropagation();
-    e.currentTarget.classList.remove('drag-over');
-
-    // Route drop based on the active drag type; fall back to original
-    // behaviour if we somehow don't have it.
-    if (rIdx !== undefined) {
-      if (activeDragType === 'row') {
-        onDrop(e, 'row', groupIdx, rIdx);
-      }
-    } else {
-      if (activeDragType === 'group') {
-        onDrop(e, 'group', groupIdx);
-      }
-    }
-  };
-
-  const handleRowDragOver = (e: React.DragEvent, rowEl: HTMLElement) => {
-    // Only show row-level preview when a ROW is being dragged
-    if (activeDragType !== 'row') return;
-    e.preventDefault();
-    e.stopPropagation();
-    rowEl.classList.add('row-drag-over');
-    autoScrollOnDrag(e);
-  }
-
-  const handleRowDragLeave = (e: React.DragEvent, rowEl: HTMLElement) => {
-    rowEl.classList.remove('row-drag-over');
-  }
-
   return (
-    <div 
-      ref={cardRef}
-      className={`charge-group-card${isNewlyAdded ? ' just-scanned' : ''}`}
-      onDragOver={handleDragOver}
-      onDragLeave={handleDragLeave}
-      onDrop={(e) => handleDrop(e)}
-    >
-      {/* HEADER MATCHING HTML STRUCTURE */}
-      <div className="cg-header">
-        <div className="cg-header__title-row">
-          <span 
-             className="group-drag-handle" 
-             draggable 
-             onDragStart={(e) => { 
-                 e.stopPropagation(); 
-                 activeDragType = 'group';
-                 e.dataTransfer.setData('text/plain', `group-${prefix}-${groupIdx}`);
-                 e.dataTransfer.effectAllowed = 'move';
-
-                 // Set drag image to the whole card
-                 if (cardRef.current) {
-                     e.dataTransfer.setDragImage(cardRef.current, 20, 20);
-                     // Defer styling to allow browser to capture drag image first
-                     setTimeout(() => cardRef.current?.classList.add('dragging'), 0);
-                 }
-
-                 onDragStart(e, 'group', groupIdx); 
-             }}
-             onDragEnd={(e) => {
-                 activeDragType = null;
-                 if (cardRef.current) cardRef.current.classList.remove('dragging');
-             }}
-             title="Drag to reorder group"
-          >
-            <GripVertical size={16} />
-          </span>
+    <Draggable draggableId={`group-${prefix}-${group.id}`} index={groupIdx}>
+      {(provided, snapshot) => (
+        <div 
+          ref={provided.innerRef}
+          {...provided.draggableProps}
+          className={`charge-group-card${isNewlyAdded ? ' just-scanned' : ''}${snapshot.isDragging ? ' dragging' : ''}`}
+          style={{ ...provided.draggableProps.style }}
+        >
+          {/* HEADER MATCHING HTML STRUCTURE */}
+          <div className="cg-header">
+            <div className="cg-header__title-row">
+              <span 
+                 className="group-drag-handle" 
+                 {...provided.dragHandleProps}
+                 title="Drag to reorder group"
+              >
+                <GripVertical size={16} />
+              </span>
           <input 
             type="text" 
             className="cg-title-input" 
@@ -188,51 +100,40 @@ export const ChargeGroupCard: React.FC<Props> = ({
           <span></span><span>RATE</span><span>UNIT</span><span>CONDITION</span><span>ROUND</span><span>MIN SETTINGS</span><span></span>
         </div>
 
-        {group.rows.map((row, rIdx) => {
-            const isMin = row.condition === 'MIN';
-            const mType = row.min_type || 'AMT';
-            const hasMinVal = (row.min_qty || 0) > 0;
-            
-            let minBoxClass = 'min-settings-box';
-            if(isMin) minBoxClass += ' active-min';
-            else if(hasMinVal) minBoxClass += ' has-value';
-            else minBoxClass += ' inactive';
+        <Droppable droppableId={`rows-${prefix}-${groupIdx}`} type="row">
+          {(provided) => (
+            <div 
+              ref={provided.innerRef}
+              {...provided.droppableProps}
+            >
+              {group.rows.map((row, rIdx) => {
+                  const isMin = row.condition === 'MIN';
+                  const mType = row.min_type || 'AMT';
+                  const hasMinVal = (row.min_qty || 0) > 0;
+                  
+                  let minBoxClass = 'min-settings-box';
+                  if(isMin) minBoxClass += ' active-min';
+                  else if(hasMinVal) minBoxClass += ' has-value';
+                  else minBoxClass += ' inactive';
 
-            return (
-              <div 
-                key={rIdx}
-                className="cg-row"
-                onDragOver={(e) => handleRowDragOver(e, e.currentTarget as HTMLElement)}
-                onDragLeave={(e) => handleRowDragLeave(e, e.currentTarget as HTMLElement)}
-                onDrop={(e) => {
-                   e.currentTarget.classList.remove('row-drag-over');
-                   handleDrop(e, rIdx);
-                }}
-              >
-                <span 
-                  className="row-drag-handle" 
-                  draggable 
-                  onDragStart={(e) => { 
-                    e.stopPropagation(); 
-                    activeDragType = 'row';
-                    e.dataTransfer.effectAllowed = 'move';
-                    e.dataTransfer.setData('text/plain', `row-${prefix}-${groupIdx}-${rIdx}`); // Tag payload
-                    
-                    // Add visual feedback class to the row itself
-                    e.currentTarget.parentElement?.classList.add('row-dragging'); 
-                    
-                    onDragStart(e, 'row', groupIdx, rIdx); 
-                  }}
-                  onDragEnd={(e) => {
-                    activeDragType = null;
-                    e.currentTarget.parentElement?.classList.remove('row-dragging');
-                  }}
-                  title="Drag to reorder row"
-                >
-                  <GripVertical size={16} />
-                </span>
+                  return (
+                    <Draggable key={row.id} draggableId={`row-${prefix}-${groupIdx}-${row.id}`} index={rIdx}>
+                      {(providedRow, snapshotRow) => (
+                        <div 
+                          ref={providedRow.innerRef}
+                          {...providedRow.draggableProps}
+                          className={`cg-row${snapshotRow.isDragging ? ' dragging' : ''}`}
+                          style={{ ...providedRow.draggableProps.style }}
+                        >
+                          <span 
+                            className="row-drag-handle" 
+                            {...providedRow.dragHandleProps}
+                            title="Drag to reorder row"
+                          >
+                            <GripVertical size={16} />
+                          </span>
 
-                {/* RATE INPUT WITH DIVISOR LOGIC */}
+                          {/* RATE INPUT WITH DIVISOR LOGIC */}
                 {row.use_divisor ? (
                   <div className="rate-input-wrapper">
                     <input 
@@ -353,13 +254,21 @@ export const ChargeGroupCard: React.FC<Props> = ({
                   <X size={16} />
                 </button>
               </div>
+                      )}
+                    </Draggable>
             );
         })}
+              {provided.placeholder}
+            </div>
+          )}
+        </Droppable>
       </div>
 
       <button className="btn-add-row" onClick={() => onAddRow(groupIdx)}>
         <Plus size={14} /> Add Condition Row
       </button>
     </div>
+      )}
+    </Draggable>
   );
 };

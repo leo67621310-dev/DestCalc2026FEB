@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { AlertTriangle, History as HistoryIcon, Camera, Bot, Settings, ChevronUp, ChevronDown, Download, Upload, Trash2, X, Plus, Image as ImageIcon } from 'lucide-react';
 import { toJpeg } from 'html-to-image';
+import { DragDropContext, Droppable, DropResult } from '@hello-pangea/dnd';
 import { ChargeData, Group, HistoryItem, CHARGE_TEMPLATES, CURRENCIES, DEFAULT_PRESETS, PresetsMap } from './types';
 import { calculateCharges } from './utils/calculations';
 import { ChargeGroupCard } from './components/ChargeGroupCard';
@@ -260,37 +261,34 @@ export default function App() {
 
 
   // --- DRAG AND DROP ---
-  const onDragStart = (e: React.DragEvent, type: 'group' | 'row', prefix: string, gIdx: number, rIdx?: number) => {
-     dragItem.current = { type, prefix, gIdx, rIdx };
-     e.dataTransfer.effectAllowed = 'move';
-  };
+  const onDragEnd = (result: DropResult) => {
+    const { source, destination, type } = result;
+    if (!destination) return;
 
-  const onDrop = (e: React.DragEvent, type: 'group' | 'row', prefix: string, targetGIdx: number, targetRIdx?: number) => {
-     const src = dragItem.current;
-     if (!src || src.prefix !== prefix) return;
+    const sourcePrefix = source.droppableId.split('-')[1];
+    const destPrefix = destination.droppableId.split('-')[1];
 
-     const { data, set } = getTarget(prefix);
-     const newGroups = [...data.groups];
+    if (sourcePrefix !== destPrefix) return; // Don't allow dragging between tabs
 
-     // Case 1: Reordering Groups
-     if (type === 'group' && src.type === 'group') {
-        const [moved] = newGroups.splice(src.gIdx, 1);
-        newGroups.splice(targetGIdx, 0, moved);
+    const { data, set } = getTarget(sourcePrefix);
+    const newGroups = [...data.groups];
+
+    if (type === 'group') {
+      const [moved] = newGroups.splice(source.index, 1);
+      newGroups.splice(destination.index, 0, moved);
+      set({ ...data, groups: newGroups });
+    } else if (type === 'row') {
+      const srcGIdx = parseInt(source.droppableId.split('-')[2], 10);
+      const destGIdx = parseInt(destination.droppableId.split('-')[2], 10);
+
+      if (srcGIdx === destGIdx) {
+        const rows = [...newGroups[srcGIdx].rows];
+        const [moved] = rows.splice(source.index, 1);
+        rows.splice(destination.index, 0, moved);
+        newGroups[srcGIdx] = { ...newGroups[srcGIdx], rows };
         set({ ...data, groups: newGroups });
-     } 
-     // Case 2: Reordering Rows (Strictly within same group)
-     else if (type === 'row' && src.type === 'row' && src.gIdx === targetGIdx) {
-        const rows = newGroups[src.gIdx].rows;
-        // Verify indices exist
-        if (typeof src.rIdx === 'number' && typeof targetRIdx === 'number') {
-            const [moved] = rows.splice(src.rIdx, 1);
-            // Correct index if shifting down
-            const finalIdx = (src.rIdx < targetRIdx) ? targetRIdx - 1 : targetRIdx;
-            rows.splice(finalIdx, 0, moved);
-            set({ ...data, groups: newGroups });
-        }
-     }
-     dragItem.current = null;
+      }
+    }
   };
 
   // --- REPORTS ---
@@ -440,24 +438,31 @@ export default function App() {
              </div>
           </div>
           
-          <div id={`${prefix}-groups-container`}>
-             {data.groups.map((g, i) => (
-                 <ChargeGroupCard 
-                    key={g.id}
-                    prefix={prefix}
-                    group={g}
-                    groupIdx={i}
-                    isNewlyAdded={lastScanFeedback?.target === prefix && lastScanFeedback?.groupIds?.includes(g.id)}
-                    onUpdateGroup={(idx, f, v) => handleUpdateGroup(prefix, idx, f, v)}
-                    onRemoveGroup={(idx) => removeGroup(prefix, idx)}
-                    onUpdateRow={(gi, ri, f, v) => handleUpdateRow(prefix, gi, ri, f, v)}
-                    onRemoveRow={(gi, ri) => removeRow(prefix, gi, ri)}
-                    onAddRow={(gi) => addRow(prefix, gi)}
-                    onDragStart={(e, t, g, r) => onDragStart(e, t, prefix, g, r)}
-                    onDrop={(e, t, g, r) => onDrop(e, t, prefix, g, r)}
-                 />
-             ))}
-          </div>
+          <Droppable droppableId={`groups-${prefix}`} type="group">
+            {(provided) => (
+              <div 
+                id={`${prefix}-groups-container`}
+                {...provided.droppableProps}
+                ref={provided.innerRef}
+              >
+                 {data.groups.map((g, i) => (
+                     <ChargeGroupCard 
+                        key={g.id}
+                        prefix={prefix}
+                        group={g}
+                        groupIdx={i}
+                        isNewlyAdded={lastScanFeedback?.target === prefix && lastScanFeedback?.groupIds?.includes(g.id)}
+                        onUpdateGroup={(idx, f, v) => handleUpdateGroup(prefix, idx, f, v)}
+                        onRemoveGroup={(idx) => removeGroup(prefix, idx)}
+                        onUpdateRow={(gi, ri, f, v) => handleUpdateRow(prefix, gi, ri, f, v)}
+                        onRemoveRow={(gi, ri) => removeRow(prefix, gi, ri)}
+                        onAddRow={(gi) => addRow(prefix, gi)}
+                     />
+                 ))}
+                 {provided.placeholder}
+              </div>
+            )}
+          </Droppable>
 
           <div className="preset-action-bar">
              <button className="btn-primary" onClick={() => addGroup(prefix, 'EMPTY')}><Plus size={16} /> Add Item</button>
@@ -817,7 +822,7 @@ export default function App() {
   };
 
   return (
-    <>
+    <DragDropContext onDragEnd={onDragEnd}>
       <div id="toast-container">{toast && <div className="toast">{toast}</div>}</div>
       
       <div className="app-wrapper">
@@ -1104,6 +1109,6 @@ export default function App() {
             </div>
         </div>
       </div>
-    </>
+    </DragDropContext>
   );
 }

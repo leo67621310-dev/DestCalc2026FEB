@@ -4,6 +4,7 @@
   "type": "module",
   "dependencies": {
     "@google/genai": "*",
+    "@hello-pangea/dnd": "^18.0.1",
     "clsx": "^2.0.0",
     "html-to-image": "^1.11.13",
     "lucide-react": "^0.263.1",
