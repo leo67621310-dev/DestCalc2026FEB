@@ -531,9 +531,6 @@ export default function App() {
                             }}
                         >
                         <td className="col-item">
-                            {r.candidates && r.candidates.length > 0 && (
-                                <span className="expand-icon">{expandedRows[`${title}-${i}`] ? <ChevronDown size={14} /> : <ChevronUp size={14} />}</span>
-                            )}
                             {r.item}
                         </td>
                         <td className="col-desc">
