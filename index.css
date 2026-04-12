@@ -351,7 +351,7 @@ button:active { transform: translateY(0); box-shadow: var(--shadow); transform: 
   color: var(--table-text);
 }
 .xl-row.pad-row td { border-bottom: 1px solid transparent; } /* Invisible borders for pads */
-.xl-row:nth-child(even) { background-color: #fafafa; }
+.xl-table:not(.xl-table-comparison) .xl-row:nth-child(even) { background-color: #fafafa; }
 
 /* Inline Diff Highlighting */
 .row-diff-higher td { background-color: #fef2f2 !important; border-bottom-color: #fee2e2; }
@@ -412,6 +412,57 @@ button:active { transform: translateY(0); box-shadow: var(--shadow); transform: 
 .comparison-container { display: flex; gap: 24px; justify-content: flex-start; }
 .comparison-col { flex: 1; display: flex; flex-direction: column; min-width: 0; max-width: 560px; }
 .xl-wrapper.report-single .report-card { max-width: 720px; }
+
+/* Merged side-by-side comparison: one table so row heights align across Standard / Requested */
+.xl-wrapper-comparison { max-width: 100%; }
+.report-card-comparison {
+  max-width: none;
+  width: 100%;
+}
+.table-wrapper-comparison {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.xl-table-comparison {
+  width: 100%;
+  min-width: 720px;
+  table-layout: fixed;
+}
+.xl-table-comparison .comparison-panel-title {
+  text-align: center;
+  font-size: 13px;
+}
+.xl-table-comparison .comparison-divider {
+  border-left: 2px solid var(--border);
+}
+.xl-table-comparison td,
+.xl-table-comparison th {
+  vertical-align: top;
+}
+.xl-table-comparison tbody tr.comparison-pair-row {
+  background-color: #ffffff;
+}
+.xl-table-comparison tbody tr.comparison-pair-row.comparison-row-alt {
+  background-color: #fafafa !important;
+}
+.xl-table-comparison .comparison-cell-interactive {
+  cursor: pointer;
+}
+.xl-table-comparison .comparison-cell-interactive:hover {
+  background-color: rgba(241, 245, 249, 0.85);
+}
+.xl-table-comparison .comparison-cell-pad {
+  color: transparent;
+}
+.comparison-footer-row td {
+  border-top: 2px solid var(--border);
+  background: #f4f7fb;
+}
+.comparison-footer-cell .footer-section.diffs {
+  border-top: 1px dashed var(--border);
+  margin-top: 8px;
+  padding-top: 8px;
+}
 
 /* --- HISTORY --- */
 .history-card { background: white; border: 1px solid var(--border); border-left: 4px solid var(--primary); padding: 16px; margin-bottom: 12px; border-radius: 8px; cursor: pointer; position: relative; transition: all 0.2s ease; box-shadow: var(--shadow); }

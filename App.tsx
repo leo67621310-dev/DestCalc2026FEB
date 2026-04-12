@@ -592,8 +592,218 @@ export default function App() {
       );
   };
 
-  const maxRows = Math.max(stdRes.rows.length, reqRes.rows.length);
   const unionCurrencies = CURRENCIES.filter(c => stdRes.totals[c] > 0 || reqRes.totals[c] > 0);
+
+  /** Single merged table so each row index shares one tr — left/right cells stay horizontally aligned. */
+  const renderComparisonTable = () => {
+    const stdRows = stdRes.rows;
+    const reqRows = reqRes.rows;
+    const n = Math.max(stdRows.length, reqRows.length);
+    const currenciesStd = CURRENCIES.filter(c => stdRes.totals[c] > 0);
+    const currenciesReq = CURRENCIES.filter(c => reqRes.totals[c] > 0);
+
+    const renderExpanded = (r: any, key: string) => {
+      if (!r?.candidates?.length || !expandedRows[key]) return null;
+      return (
+        <div className="expanded-details">
+          <div className="expanded-header">Calculation Details</div>
+          {r.candidates.map((c: any, cIdx: number) => (
+            <div key={cIdx} className={`candidate-item ${c.is_winner ? 'winner' : ''}`}>
+              <div className="candidate-desc">
+                <strong>{c.cond !== 'NONE' ? `[${c.cond}] ` : ''}</strong>
+                {c.desc}
+                {c.is_winner && <span className="winner-badge">Applied</span>}
+              </div>
+              <div className="candidate-calc">{c.calc_string}</div>
+            </div>
+          ))}
+        </div>
+      );
+    };
+
+    return (
+      <div className="report-card report-card-comparison" id="report-comparison-merged">
+        <div className="table-wrapper table-wrapper-comparison">
+          <table className="xl-table xl-table-comparison">
+            <thead>
+              <tr>
+                <th className="xl-header comparison-panel-title" colSpan={4}>{stdData.title.toUpperCase()}</th>
+                <th className="xl-header comparison-panel-title comparison-divider" colSpan={4}>{reqData.title.toUpperCase()}</th>
+              </tr>
+              <tr>
+                <th className="xl-header col-item">Item</th>
+                <th className="xl-header col-desc">Description</th>
+                <th className="xl-header col-curr">Cur</th>
+                <th className="xl-header col-amt">Amount</th>
+                <th className="xl-header col-item comparison-divider">Item</th>
+                <th className="xl-header col-desc">Description</th>
+                <th className="xl-header col-curr">Cur</th>
+                <th className="xl-header col-amt">Amount</th>
+              </tr>
+            </thead>
+            <tbody>
+              {n === 0 && (
+                <tr>
+                  <td colSpan={8}>
+                    <div className="empty-state">
+                      <strong>No charge lines yet</strong>
+                      <p>Add items above or load a preset to see totals and differences here.</p>
+                    </div>
+                  </td>
+                </tr>
+              )}
+              {Array.from({ length: n }, (_, i) => {
+                const l = stdRows[i];
+                const rrow = reqRows[i];
+                const lPad = !l || l.is_pad;
+                const rPad = !rrow || rrow.is_pad;
+                const lKey = `cmp-L-${i}`;
+                const rKey = `cmp-R-${i}`;
+                const lHas = !!(l && !l.is_pad && l.candidates?.length);
+                const rHas = !!(rrow && !rrow.is_pad && rrow.candidates?.length);
+
+                return (
+                  <React.Fragment key={i}>
+                    <tr
+                      className={`xl-row comparison-pair-row ${i % 2 === 1 ? 'comparison-row-alt' : ''} ${lHas || rHas ? 'expandable' : ''}`}
+                    >
+                      {lPad ? (
+                        <>
+                          <td className="col-item comparison-cell-pad" colSpan={4}>&nbsp;</td>
+                        </>
+                      ) : (
+                        <>
+                          <td
+                            className={`col-item ${lHas ? 'comparison-cell-interactive' : ''}`}
+                            onClick={() => lHas && toggleRow(lKey)}
+                          >
+                            {l!.item}
+                          </td>
+                          <td
+                            className={`col-desc ${lHas ? 'comparison-cell-interactive' : ''}`}
+                            onClick={() => lHas && toggleRow(lKey)}
+                          >
+                            {l!.desc}
+                            {l!.subtext && (
+                              <span className="calc-subtext">
+                                <span className="min-highlight">{l!.subtext}</span>
+                              </span>
+                            )}
+                          </td>
+                          <td className={`col-curr ${lHas ? 'comparison-cell-interactive' : ''}`} onClick={() => lHas && toggleRow(lKey)}>
+                            {l!.curr}
+                          </td>
+                          <td className={`col-amt ${lHas ? 'comparison-cell-interactive' : ''}`} onClick={() => lHas && toggleRow(lKey)}>
+                            {l!.amount.toFixed(2)}
+                          </td>
+                        </>
+                      )}
+                      {rPad ? (
+                        <td className="col-item comparison-cell-pad comparison-divider" colSpan={4}>
+                          &nbsp;
+                        </td>
+                      ) : (
+                        <>
+                          <td
+                            className={`col-item comparison-divider ${rHas ? 'comparison-cell-interactive' : ''}`}
+                            onClick={() => rHas && toggleRow(rKey)}
+                          >
+                            {rrow!.item}
+                          </td>
+                          <td
+                            className={`col-desc ${rHas ? 'comparison-cell-interactive' : ''}`}
+                            onClick={() => rHas && toggleRow(rKey)}
+                          >
+                            {rrow!.desc}
+                            {rrow!.subtext && (
+                              <span className="calc-subtext">
+                                <span className="min-highlight">{rrow!.subtext}</span>
+                              </span>
+                            )}
+                          </td>
+                          <td className={`col-curr ${rHas ? 'comparison-cell-interactive' : ''}`} onClick={() => rHas && toggleRow(rKey)}>
+                            {rrow!.curr}
+                          </td>
+                          <td className={`col-amt ${rHas ? 'comparison-cell-interactive' : ''}`} onClick={() => rHas && toggleRow(rKey)}>
+                            {rrow!.amount.toFixed(2)}
+                          </td>
+                        </>
+                      )}
+                    </tr>
+                    {(expandedRows[lKey] || expandedRows[rKey]) && (
+                      <tr className="xl-row expanded-details-row comparison-expanded-row">
+                        <td colSpan={4} style={{ padding: 0, verticalAlign: 'top' }}>
+                          {renderExpanded(l, lKey)}
+                        </td>
+                        <td colSpan={4} className="comparison-divider" style={{ padding: 0, verticalAlign: 'top' }}>
+                          {renderExpanded(rrow, rKey)}
+                        </td>
+                      </tr>
+                    )}
+                  </React.Fragment>
+                );
+              })}
+              <tr className="comparison-footer-row">
+                <td colSpan={4} className="comparison-footer-cell">
+                  <div className="footer-section totals">
+                    {currenciesStd.length > 0 ? (
+                      currenciesStd.map(c => (
+                        <div key={c} className="stat-line">
+                          <span className="stat-lbl">TOTAL {c}</span>{' '}
+                          <span className="stat-val">{stdRes.totals[c]?.toFixed(2) || '0.00'}</span>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="stat-line">
+                        <span className="stat-lbl">TOTAL</span> <span className="stat-val">0.00</span>
+                      </div>
+                    )}
+                  </div>
+                </td>
+                <td colSpan={4} className="comparison-footer-cell comparison-divider">
+                  <div className="footer-section totals">
+                    {currenciesReq.length > 0 ? (
+                      currenciesReq.map(c => (
+                        <div key={c} className="stat-line">
+                          <span className="stat-lbl">TOTAL {c}</span>{' '}
+                          <span className="stat-val">{reqRes.totals[c]?.toFixed(2) || '0.00'}</span>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="stat-line">
+                        <span className="stat-lbl">TOTAL</span> <span className="stat-val">0.00</span>
+                      </div>
+                    )}
+                  </div>
+                  <div className="footer-section diffs">
+                    {unionCurrencies.length > 0 ? (
+                      unionCurrencies.map(c => {
+                        const d = (reqRes.totals[c] || 0) - (stdRes.totals[c] || 0);
+                        const sign = d >= 0 ? '+' : '';
+                        return (
+                          <div key={c} className="stat-line">
+                            <span className="stat-lbl">DIFF {c}</span>{' '}
+                            <span className="stat-val">
+                              {sign}
+                              {d.toFixed(2)}
+                            </span>
+                          </div>
+                        );
+                      })
+                    ) : (
+                      <div className="stat-line">
+                        <span className="stat-lbl">DIFF</span> <span className="stat-val">0.00</span>
+                      </div>
+                    )}
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <>
@@ -800,14 +1010,9 @@ export default function App() {
                 </div>
            </div>
            
-           <div id="full-report-area" className={`xl-wrapper ${viewMode !== 'Comparison' ? 'report-single' : ''}`} style={{marginTop:'20px', padding: '20px', backgroundColor: 'var(--bg-body)', borderRadius: '12px'}}>
+           <div id="full-report-area" className={`xl-wrapper ${viewMode === 'Comparison' ? 'xl-wrapper-comparison' : 'report-single'}`} style={{marginTop:'20px', padding: '20px', backgroundColor: 'var(--bg-body)', borderRadius: '12px'}}>
               <div className="xl-info-box"><strong>SHIPMENT DETAILS:</strong>&nbsp;&nbsp; CBM: {globals.cbm.toFixed(3)} &nbsp;|&nbsp; KGS: {globals.kgs.toFixed(3)} &nbsp;|&nbsp; PKGS: {globals.pkgs}</div>
-              {viewMode === 'Comparison' && (
-                  <div className="comparison-container">
-                      <div className="comparison-col">{renderReportTable(stdRes, stdData.title, false, undefined, maxRows, unionCurrencies)}</div>
-                      <div className="comparison-col">{renderReportTable(reqRes, reqData.title, true, stdRes, maxRows, unionCurrencies)}</div>
-                  </div>
-              )}
+              {viewMode === 'Comparison' && renderComparisonTable()}
               {viewMode === 'Standard' && renderReportTable(stdRes, stdData.title, false)}
               {viewMode === 'Requested' && renderReportTable(reqRes, reqData.title, false)}
            </div>
