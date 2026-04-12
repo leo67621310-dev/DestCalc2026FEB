@@ -22,6 +22,10 @@
   /* Neutral tone for comparison table text */
   --table-text: oklch(0.4 0.03 250);
 
+  /* Alternating table rows — darker than before for clearer scan lines vs white cells */
+  --table-zebra: oklch(0.9 0.038 252);
+  --table-zebra-hover: oklch(0.855 0.045 252);
+
   /* Semantic accents */
   --success: oklch(0.7 0.15 150);        /* Emerald for positive diffs */
   --danger: oklch(0.63 0.21 25);         /* Red for negative diffs / destructive */
@@ -372,7 +376,7 @@ button:active { transform: translateY(0); box-shadow: var(--shadow); transform: 
   color: var(--table-text);
 }
 .xl-row.pad-row td { border-bottom: 1px solid transparent; } /* Invisible borders for pads */
-.xl-table:not(.xl-table-comparison) .xl-row:nth-child(even) { background-color: #fafafa; }
+.xl-table:not(.xl-table-comparison) .xl-row:nth-child(even) { background-color: var(--table-zebra); }
 
 /* Inline Diff Highlighting */
 .row-diff-higher td { background-color: #fef2f2 !important; border-bottom-color: #fee2e2; }
@@ -388,7 +392,7 @@ button:active { transform: translateY(0); box-shadow: var(--shadow); transform: 
 
 /* Expandable Rows */
 .xl-row.expandable { cursor: pointer; }
-.xl-row.expandable:hover { background-color: #f1f5f9; }
+.xl-row.expandable:hover { background-color: var(--table-zebra-hover); }
 .expand-icon { display: inline-flex; align-items: center; justify-content: center; width: 16px; height: 16px; margin-right: 6px; color: var(--secondary); vertical-align: middle; }
 .expanded-details-row td { background-color: #f8fafc; border-bottom: 1px solid var(--border) !important; }
 .expanded-details { padding: 12px 24px; font-size: 12px; color: var(--secondary); }
@@ -494,13 +498,13 @@ button:active { transform: translateY(0); box-shadow: var(--shadow); transform: 
   background-color: #ffffff;
 }
 .xl-table-comparison tbody tr.comparison-pair-row.comparison-row-alt {
-  background-color: #fafafa !important;
+  background-color: var(--table-zebra) !important;
 }
 .xl-table-comparison .comparison-cell-interactive {
   cursor: pointer;
 }
 .xl-table-comparison .comparison-cell-interactive:hover {
-  background-color: rgba(241, 245, 249, 0.85);
+  background-color: var(--table-zebra-hover);
 }
 .xl-table-comparison .comparison-cell-pad {
   color: transparent;
