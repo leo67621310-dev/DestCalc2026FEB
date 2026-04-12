@@ -59,7 +59,7 @@ export default async function handler(req: any, res: any) {
       responseSchema: responseSchema
     };
 
-    if (model.includes("gemini-3")) {
+    if (model && model.includes("gemini-3")) {
         if (reasoning === "low") config.thinkingConfig = { thinkingLevel: ThinkingLevel.LOW };
         else if (reasoning === "high") config.thinkingConfig = { thinkingLevel: ThinkingLevel.HIGH };
     }

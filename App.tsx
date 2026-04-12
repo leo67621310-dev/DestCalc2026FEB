@@ -46,10 +46,39 @@ export default function App() {
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        setStdData(parsed.std || EMPTY_STRUCTURE);
-        setReqData(parsed.req || EMPTY_STRUCTURE);
-        setSavedPresets(parsed.presets || DEFAULT_PRESETS);
-        setHistory(parsed.history || []);
+        
+        // Ensure all groups and rows have IDs when loading from older versions
+        const ensureIds = (data: any) => {
+           if (!data || !data.groups) return data;
+           data.groups.forEach((g: any) => {
+               if (!g.id) g.id = 'g_' + Math.random().toString(36).substr(2, 9);
+               g.rows.forEach((r: any) => {
+                   if (!r.id) r.id = 'r_' + Math.random().toString(36).substr(2, 9);
+               });
+           });
+           return data;
+        };
+
+        setStdData(ensureIds(parsed.std) || EMPTY_STRUCTURE);
+        setReqData(ensureIds(parsed.req) || EMPTY_STRUCTURE);
+        
+        if (parsed.presets) {
+           Object.values(parsed.presets).forEach((p: any) => ensureIds(p));
+           setSavedPresets(parsed.presets);
+        } else {
+           setSavedPresets(DEFAULT_PRESETS);
+        }
+        
+        if (parsed.history) {
+            parsed.history.forEach((h: any) => {
+                ensureIds(h.snap_std);
+                ensureIds(h.snap_req);
+            });
+            setHistory(parsed.history);
+        } else {
+            setHistory([]);
+        }
+        
         if (parsed.globals) setGlobals(parsed.globals);
       } catch (e) {
         console.error("Load error", e);
@@ -104,13 +133,14 @@ export default function App() {
     const { data, set } = getTarget(prefix);
     const tpl = CHARGE_TEMPLATES[templateKey] || CHARGE_TEMPLATES["EMPTY"];
     const newGroup = JSON.parse(JSON.stringify({ ...tpl, id: 'g_' + Date.now() }));
+    newGroup.rows.forEach((r: any) => r.id = 'r_' + Math.random().toString(36).substr(2, 9));
     set({ ...data, groups: [...data.groups, newGroup] });
   };
 
   const addRow = (prefix: string, gIdx: number) => {
     const { data, set } = getTarget(prefix);
     const newGroups = [...data.groups];
-    newGroups[gIdx].rows.push({ rate: 0, divisor: 1, use_divisor: false, unit: 'FLAT', condition: 'NONE', min_type: 'AMT', min_qty: 0, round_up: false, round_up_decimals: 0 });
+    newGroups[gIdx].rows.push({ id: 'r_' + Date.now(), rate: 0, divisor: 1, use_divisor: false, unit: 'FLAT', condition: 'NONE', min_type: 'AMT', min_qty: 0, round_up: false, round_up_decimals: 0 });
     set({ ...data, groups: newGroups });
   };
 
@@ -206,6 +236,7 @@ export default function App() {
             multiplier_active: !!g.is_storage,
             multiplier_value: g.min_days || 1,
             rows: (g.rows || []).map((r: any) => ({
+                id: 'r_' + Math.random().toString(36).substr(2, 9),
                 rate: r.rate || 0,
                 divisor: r.divisor || 1,
                 use_divisor: (r.divisor && r.divisor !== 1),
@@ -356,6 +387,21 @@ export default function App() {
            // Sort descending by ID
            imported.sort((a: any, b: any) => b.id - a.id);
            
+           const ensureIds = (data: any) => {
+               if (!data || !data.groups) return data;
+               data.groups.forEach((g: any) => {
+                   if (!g.id) g.id = 'g_' + Math.random().toString(36).substr(2, 9);
+                   g.rows.forEach((r: any) => {
+                       if (!r.id) r.id = 'r_' + Math.random().toString(36).substr(2, 9);
+                   });
+               });
+               return data;
+            };
+            imported.forEach((h: any) => {
+                ensureIds(h.snap_std);
+                ensureIds(h.snap_req);
+            });
+
            // Set to TEMPORARY state
            setImportedHistory(imported as HistoryItem[]);
            setHistoryView('imported');
