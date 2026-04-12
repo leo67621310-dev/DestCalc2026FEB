@@ -45,6 +45,14 @@ export interface CalculationResult {
   meta: { cbm: number; kgs: number; pkgs: number };
 }
 
+export interface CandidateDetail {
+  desc: string;
+  amt: number;
+  met: boolean;
+  is_winner: boolean;
+  calc_string: string;
+}
+
 export interface CalculatedRow {
   item: string;
   desc: string;
@@ -54,6 +62,7 @@ export interface CalculatedRow {
   isPctTotal: boolean;
   subtext?: string;
   is_pad?: boolean;
+  candidates?: CandidateDetail[];
 }
 
 export const CURRENCIES = ['EUR', 'USD', 'HKD', 'RMB'];
