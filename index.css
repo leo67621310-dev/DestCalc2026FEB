@@ -671,9 +671,13 @@ button:active { transform: translateY(0); box-shadow: var(--shadow); transform: 
 .table-wrapper { flex: 1; display: flex; flex-direction: column; min-width: 0; }
 .xl-table { width: 100%; border-collapse: collapse; font-size: 13px; table-layout: fixed; }
 /* Item | Description (wide for multi-condition lines) | Cur (minimal) | Amount */
-.xl-table .col-item { width: 8%; }
+.xl-table .col-item {
+  width: 14%;
+  word-break: normal;
+  overflow-wrap: break-word;
+}
 .xl-table .col-desc {
-  width: 76%;
+  width: 69%;
   min-width: 0;
   word-break: normal;
   overflow-wrap: break-word;
@@ -686,7 +690,7 @@ button:active { transform: translateY(0); box-shadow: var(--shadow); transform: 
   text-align: right;
 }
 .xl-table .col-amt {
-  width: 14%;
+  width: 15%;
   min-width: 4rem;
   padding-left: 4px;
 }
@@ -704,8 +708,8 @@ button:active { transform: translateY(0); box-shadow: var(--shadow); transform: 
 }
 .xl-header.col-curr {
   text-align: right;
-  max-width: 2.35rem;
-  padding-left: 6px;
+  max-width: 2.1rem;
+  padding-left: 2px;
   padding-right: 2px;
 }
 .xl-header.col-amt { text-align: right; padding-left: 4px; padding-right: 16px; }
@@ -803,29 +807,32 @@ button:active { transform: translateY(0); box-shadow: var(--shadow); transform: 
 }
 .xl-table-comparison {
   width: 100%;
-  min-width: 780px;
+  min-width: 960px;
   table-layout: fixed;
 }
-/* Eight data columns only (skip colspan rows: panel titles, expanded, footer) */
+/* Eight data columns: prioritize description width; Cur hug content (3-letter codes) */
 .xl-table-comparison thead tr:nth-child(2) th:nth-child(1),
 .xl-table-comparison thead tr:nth-child(2) th:nth-child(5),
 .xl-table-comparison tbody tr.comparison-pair-row td:nth-child(1),
 .xl-table-comparison tbody tr.comparison-pair-row td:nth-child(5) {
-  width: 4%;
+  width: 8%;
+  word-break: normal;
+  overflow-wrap: break-word;
 }
 .xl-table-comparison thead tr:nth-child(2) th:nth-child(2),
 .xl-table-comparison thead tr:nth-child(2) th:nth-child(6),
 .xl-table-comparison tbody tr.comparison-pair-row td:nth-child(2),
 .xl-table-comparison tbody tr.comparison-pair-row td:nth-child(6) {
-  width: 40%;
+  width: 37%;
 }
 .xl-table-comparison thead tr:nth-child(2) th:nth-child(3),
 .xl-table-comparison thead tr:nth-child(2) th:nth-child(7),
 .xl-table-comparison tbody tr.comparison-pair-row td:nth-child(3),
 .xl-table-comparison tbody tr.comparison-pair-row td:nth-child(7) {
-  width: 2%;
-  max-width: 2.35rem;
-  padding-left: 4px;
+  width: 1%;
+  max-width: 2rem;
+  min-width: 0;
+  padding-left: 2px;
   padding-right: 2px;
   text-align: right;
 }
@@ -834,7 +841,13 @@ button:active { transform: translateY(0); box-shadow: var(--shadow); transform: 
 .xl-table-comparison tbody tr.comparison-pair-row td:nth-child(4),
 .xl-table-comparison tbody tr.comparison-pair-row td:nth-child(8) {
   width: 4%;
+  min-width: 3.5rem;
   padding-left: 4px;
+}
+/* Slightly tighter cell padding on description so text uses width for content */
+.xl-table-comparison .col-desc {
+  padding-left: 10px;
+  padding-right: 10px;
 }
 .xl-table-comparison .comparison-panel-title {
   text-align: center;
