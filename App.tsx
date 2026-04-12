@@ -212,47 +212,61 @@ export default function App() {
     showToast(`⏳ Processing image for ${prefix.toUpperCase()}...`);
 
     try {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = async () => {
-        const base64 = (reader.result as string).split(',')[1];
-        const res = await fetch('/api/scan', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ imageBase64: base64, mimeType: file.type, model, reasoning })
-        });
-        const result = await res.json();
-        if (!res.ok) throw new Error(result.error);
-        
-        // Parse result
-        const parsed = JSON.parse(result.text);
-        
-        // Map to structure
-        const newGroups = (parsed.groups || []).map((g: any) => ({
-            id: 'g_' + Math.random().toString(36).substr(2, 9),
-            title: g.title || "Charge",
-            currency: (g.currency || 'EUR').toUpperCase(),
-            logic: g.logic || 'SUM',
-            multiplier_active: !!g.is_storage,
-            multiplier_value: g.min_days || 1,
-            rows: (g.rows || []).map((r: any) => ({
-                id: 'r_' + Math.random().toString(36).substr(2, 9),
-                rate: r.rate || 0,
-                divisor: r.divisor || 1,
-                use_divisor: (r.divisor && r.divisor !== 1),
-                unit: (r.unit || 'FLAT').toUpperCase().replace('M3','CBM').replace('KG','KGS').replace('TONS','TON').replace('LS','FLAT').replace('SHIPMENT','SHPT').replace('% GROUP', '% ITEM'),
-                condition: r.condition || 'NONE',
-                min_type: 'AMT',
-                min_qty: 0,
-                round_up: r.round_up || false,
-                round_up_decimals: r.round_up_decimals !== undefined ? r.round_up_decimals : 0
-            }))
-        }));
+      const base64 = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onerror = () => reject(new Error('Could not read image file.'));
+        reader.onload = () => {
+          const dataUrl = reader.result as string;
+          const encoded = dataUrl?.split(',')[1];
+          if (!encoded) reject(new Error('Invalid image data.'));
+          else resolve(encoded);
+        };
+        reader.readAsDataURL(file);
+      });
 
-        addGroupsToTarget(prefix, newGroups);
-        showToast(`✅ Added ${newGroups.length} groups.`);
-        setLastScanFeedback({ count: newGroups.length, target: prefix as 'std' | 'req' | 'mgr', groupIds: newGroups.map((gr: Group) => gr.id) });
-      };
+      const res = await fetch('/api/scan', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ imageBase64: base64, mimeType: file.type, model, reasoning })
+      });
+
+      let result: any = {};
+      try {
+        result = await res.json();
+      } catch {
+        throw new Error(`Scan service returned ${res.status} without valid JSON.`);
+      }
+
+      if (!res.ok) throw new Error(result?.error || `Scan request failed with ${res.status}.`);
+
+      // Parse result
+      const parsed = JSON.parse(result.text);
+
+      // Map to structure
+      const newGroups = (parsed.groups || []).map((g: any) => ({
+          id: 'g_' + Math.random().toString(36).substr(2, 9),
+          title: g.title || "Charge",
+          currency: (g.currency || 'EUR').toUpperCase(),
+          logic: g.logic || 'SUM',
+          multiplier_active: !!g.is_storage,
+          multiplier_value: g.min_days || 1,
+          rows: (g.rows || []).map((r: any) => ({
+              id: 'r_' + Math.random().toString(36).substr(2, 9),
+              rate: r.rate || 0,
+              divisor: r.divisor || 1,
+              use_divisor: (r.divisor && r.divisor !== 1),
+              unit: (r.unit || 'FLAT').toUpperCase().replace('M3','CBM').replace('KG','KGS').replace('TONS','TON').replace('LS','FLAT').replace('SHIPMENT','SHPT').replace('% GROUP', '% ITEM'),
+              condition: r.condition || 'NONE',
+              min_type: 'AMT',
+              min_qty: 0,
+              round_up: r.round_up || false,
+              round_up_decimals: r.round_up_decimals !== undefined ? r.round_up_decimals : 0
+          }))
+      }));
+
+      addGroupsToTarget(prefix, newGroups);
+      showToast(`✅ Added ${newGroups.length} groups.`);
+      setLastScanFeedback({ count: newGroups.length, target: prefix as 'std' | 'req' | 'mgr', groupIds: newGroups.map((gr: Group) => gr.id) });
     } catch (err: any) {
       alert("Scan failed: " + (err?.message || "Something went wrong.") + " Use a clear image of a charges table or try again.");
     } finally {
