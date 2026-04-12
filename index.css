@@ -324,21 +324,26 @@ button:active { transform: translateY(0); box-shadow: var(--shadow); transform: 
 
 .table-wrapper { flex: 1; display: flex; flex-direction: column; min-width: 0; }
 .xl-table { width: 100%; border-collapse: collapse; font-size: 13px; table-layout: fixed; }
-/* Item | Description (wide for multi-condition lines) | Cur (minimal) | Amount */
-.xl-table .col-item { width: 14%; }
+/* Item | Description (wide for multi-condition lines) | Cur (minimal, hug amount) | Amount */
+.xl-table .col-item { width: 12%; }
 .xl-table .col-desc {
-  width: 56%;
+  width: 62%;
   min-width: 0;
   word-break: break-word;
   overflow-wrap: anywhere;
 }
 .xl-table .col-curr {
-  width: 5%;
-  max-width: 3.25rem;
-  padding-left: 8px;
-  padding-right: 8px;
+  width: 3%;
+  max-width: 2.35rem;
+  padding-left: 6px;
+  padding-right: 2px;
+  text-align: right;
 }
-.xl-table .col-amt { width: 19%; min-width: 4.25rem; }
+.xl-table .col-amt {
+  width: 17%;
+  min-width: 4rem;
+  padding-left: 4px;
+}
 
 .xl-header { 
   background: #fafafa; 
@@ -351,8 +356,13 @@ button:active { transform: translateY(0); box-shadow: var(--shadow); transform: 
   font-size: 11px; 
   letter-spacing: 0.05em; 
 }
-.xl-header.col-curr { text-align: center; max-width: 3.25rem; padding-left: 8px; padding-right: 8px; }
-.xl-header.col-amt { text-align: right; padding-right: 16px; }
+.xl-header.col-curr {
+  text-align: right;
+  max-width: 2.35rem;
+  padding-left: 6px;
+  padding-right: 2px;
+}
+.xl-header.col-amt { text-align: right; padding-left: 4px; padding-right: 16px; }
 
 .xl-row td { 
   padding: 10px 16px; 
@@ -438,6 +448,36 @@ button:active { transform: translateY(0); box-shadow: var(--shadow); transform: 
   width: 100%;
   min-width: 720px;
   table-layout: fixed;
+}
+/* Eight data columns only (skip colspan rows: panel titles, expanded, footer) */
+.xl-table-comparison thead tr:nth-child(2) th:nth-child(1),
+.xl-table-comparison thead tr:nth-child(2) th:nth-child(5),
+.xl-table-comparison tbody tr.comparison-pair-row td:nth-child(1),
+.xl-table-comparison tbody tr.comparison-pair-row td:nth-child(5) {
+  width: 6%;
+}
+.xl-table-comparison thead tr:nth-child(2) th:nth-child(2),
+.xl-table-comparison thead tr:nth-child(2) th:nth-child(6),
+.xl-table-comparison tbody tr.comparison-pair-row td:nth-child(2),
+.xl-table-comparison tbody tr.comparison-pair-row td:nth-child(6) {
+  width: 34%;
+}
+.xl-table-comparison thead tr:nth-child(2) th:nth-child(3),
+.xl-table-comparison thead tr:nth-child(2) th:nth-child(7),
+.xl-table-comparison tbody tr.comparison-pair-row td:nth-child(3),
+.xl-table-comparison tbody tr.comparison-pair-row td:nth-child(7) {
+  width: 2%;
+  max-width: 2.35rem;
+  padding-left: 4px;
+  padding-right: 2px;
+  text-align: right;
+}
+.xl-table-comparison thead tr:nth-child(2) th:nth-child(4),
+.xl-table-comparison thead tr:nth-child(2) th:nth-child(8),
+.xl-table-comparison tbody tr.comparison-pair-row td:nth-child(4),
+.xl-table-comparison tbody tr.comparison-pair-row td:nth-child(8) {
+  width: 8%;
+  padding-left: 4px;
 }
 .xl-table-comparison .comparison-panel-title {
   text-align: center;
