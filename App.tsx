@@ -433,10 +433,10 @@ export default function App() {
       const { data, set } = getTarget(prefix);
       return (
         <div>
-          <div className="input-row" style={{ marginBottom: '20px' }}>
+          <div className="input-row input-row--spaced">
              <div className="input-group">
                  <label>Section Title</label>
-                 <input type="text" value={data.title} onChange={e => set({...data, title: e.target.value})} style={{ fontWeight: 600 }} />
+                 <input type="text" value={data.title} onChange={e => set({...data, title: e.target.value})} className="input-emphasis" />
              </div>
           </div>
           
@@ -459,11 +459,11 @@ export default function App() {
              ))}
           </div>
 
-          <div style={{ marginTop: '20px', background: '#f8fafc', padding: '10px', border: '1px dashed var(--border)', borderRadius: '8px', display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
+          <div className="preset-action-bar">
              <button className="btn-primary" onClick={() => addGroup(prefix, 'EMPTY')}><Plus size={16} /> Add Item</button>
-             <div style={{ flex: 1, borderLeft: '1px solid #e2e8f0', paddingLeft: '15px', display: 'flex', gap: '10px', alignItems: 'center' }}>
-                 <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--secondary)', whiteSpace: 'nowrap' }}>OR ADD PRESET:</span>
-                 <select id={`${prefix}-tpl-select`} style={{ flex: 1, minWidth: '150px' }}>
+             <div className="preset-action-bar__or">
+                 <span className="label-or-preset">OR ADD PRESET:</span>
+                 <select id={`${prefix}-tpl-select`} className="preset-action-bar__select">
                     {Object.keys(CHARGE_TEMPLATES).map(k => <option key={k} value={k}>{k}</option>)}
                  </select>
                  <button className="btn-secondary" onClick={() => {
@@ -552,7 +552,7 @@ export default function App() {
                         </tr>
                         {expandedRows[`${title}-${i}`] && r.candidates && (
                             <tr className="xl-row expanded-details-row">
-                                <td colSpan={4} style={{ padding: 0 }}>
+                                <td colSpan={4} className="td-cell-flush">
                                     <div className="expanded-details">
                                         <div className="expanded-header">Calculation Details</div>
                                         {r.candidates.map((c: any, cIdx: number) => (
@@ -584,7 +584,7 @@ export default function App() {
                   )) : <div className="stat-line"><span className="stat-lbl">TOTAL</span> <span className="stat-val">0.00</span></div>}
                </div>
                
-               <div className="footer-section diffs" style={{ visibility: showDiff ? 'visible' : 'hidden' }}>
+               <div className={`footer-section diffs${!showDiff ? ' footer-section--diff-hidden' : ''}`}>
                   {currenciesToShow.length > 0 ? currenciesToShow.map(c => {
                       let d = 0;
                       if (showDiff && diffRes) {
@@ -743,10 +743,10 @@ export default function App() {
                     </tr>
                     {(expandedRows[lKey] || expandedRows[rKey]) && (
                       <tr className="xl-row expanded-details-row comparison-expanded-row">
-                        <td colSpan={4} style={{ padding: 0, verticalAlign: 'top' }}>
+                        <td colSpan={4} className="td-cell-flush">
                           {renderExpanded(l, lKey)}
                         </td>
-                        <td colSpan={4} className="comparison-divider" style={{ padding: 0, verticalAlign: 'top' }}>
+                        <td colSpan={4} className="comparison-divider td-cell-flush">
                           {renderExpanded(rrow, rKey)}
                         </td>
                       </tr>
@@ -826,9 +826,9 @@ export default function App() {
            <div className="dashboard-header">
                <div className="header-row">
                   <div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <div className="dashboard-title-row">
                           <h3>Destination Charges Calculator</h3>
-                          <span style={{ fontSize: '11px', padding: '4px 8px', background: 'var(--border-light)', color: 'var(--secondary)', borderRadius: '6px', fontWeight: 600, border: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                          <span className="model-badge">
                               <Bot size={12} />
                               {
                                 model === 'gemini-3.1-pro-preview'
@@ -841,11 +841,11 @@ export default function App() {
                               }
                           </span>
                       </div>
-                      <span style={{ fontSize: '12px', color: 'var(--secondary)' }}>Compare standard vs requested charges and see what to collect from agent or consignee.</span>
-                      <span style={{ fontSize: '11px', color: 'var(--secondary)', opacity: 0.9, display: 'block', marginTop: '4px' }}>Enter shipment details, load or add charges for Standard and Requested, then check the DIFF totals below.</span>
+                      <span className="dashboard-tagline">Compare standard vs requested charges and see what to collect from agent or consignee.</span>
+                      <span className="dashboard-tagline--sub">Enter shipment details, load or add charges for Standard and Requested, then check the DIFF totals below.</span>
                   </div>
-                  <div style={{ display: 'flex', gap: '10px' }}>
-                      <button className="btn-danger" onClick={() => { if(confirm('Reset all data? Your presets and history will be cleared. This can\'t be undone.')) { localStorage.removeItem(STORAGE_KEY); location.reload(); }}} style={{ fontSize: '11px', padding: '6px 10px' }}><AlertTriangle size={14} /> Reset App</button>
+                  <div className="header-actions">
+                      <button className="btn-danger btn-compact-danger" onClick={() => { if(confirm('Reset all data? Your presets and history will be cleared. This can\'t be undone.')) { localStorage.removeItem(STORAGE_KEY); location.reload(); }}}><AlertTriangle size={14} /> Reset App</button>
                       <button className="btn-secondary" onClick={() => setSidebarCollapsed(!sidebarCollapsed)}>
                           <HistoryIcon size={16} /> History
                       </button>
@@ -853,7 +853,7 @@ export default function App() {
                </div>
 
                <div className="global-inputs">
-                  <div className="input-group" style={{ flex: 2, minWidth: '200px', borderRight: '1px solid var(--border)', paddingRight: '20px', marginRight: '10px' }}>
+                  <div className="input-group global-inputs__ref">
                       <label>Job Reference #</label>
                       <input type="text" value={globals.ref} onChange={e => setGlobals({...globals, ref: e.target.value})} placeholder="e.g. HMB-2023-001" />
                   </div>
@@ -869,7 +869,7 @@ export default function App() {
                       <label>PKGS</label>
                       <input type="number" value={globals.pkgs} onChange={e => setGlobals({...globals, pkgs: parseFloat(e.target.value)})} step="1" />
                   </div>
-                  <div className="input-group" style={{ flex: '0 0 auto', paddingBottom: '1px' }}>
+                  <div className="input-group global-inputs__snap">
                       <button className="btn-primary" onClick={saveToHistory} title="Save this comparison to history">
                           <Camera size={16} /> Snap
                       </button>
@@ -887,15 +887,15 @@ export default function App() {
            {/* TAB CONTENT */}
            {activeTab === 'std' && (
              <div>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', alignItems: 'center', marginBottom: '15px' }}>
-                   <select id="std-load-select" style={{ maxWidth: '300px' }}>
+                <div className="tab-toolbar">
+                   <select id="std-load-select" className="tab-toolbar__select">
                       {Object.keys(savedPresets).map(k => <option key={k} value={k}>{k}</option>)}
                    </select>
                    <button className="btn-warning" onClick={() => loadPresetToTab('std', (document.getElementById('std-load-select') as HTMLSelectElement).value)}>Load Preset</button>
-                   <button className="btn-info" style={{ marginLeft: '10px' }} onClick={() => document.getElementById('scan-std')?.click()}>
+                   <button className="btn-info tab-toolbar__scan" onClick={() => document.getElementById('scan-std')?.click()}>
                        <Bot size={16} /> {isScanning ? 'Scanning…' : 'Scan image or paste (Ctrl+V)'}
                    </button>
-                   <input id="scan-std" type="file" style={{display:'none'}} accept="image/*" onChange={(e) => handleFileScan(e, 'std')} />
+                   <input id="scan-std" type="file" className="visually-hidden-file" accept="image/*" onChange={(e) => handleFileScan(e, 'std')} />
                 </div>
                 {lastScanFeedback?.target === 'std' && (
                    <div className="scan-feedback" role="status">{lastScanFeedback.count === 1 ? 'Added 1 charge group from image.' : `Added ${lastScanFeedback.count} charge groups from image.`}</div>
@@ -906,15 +906,15 @@ export default function App() {
 
            {activeTab === 'req' && (
              <div>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', alignItems: 'center', marginBottom: '15px' }}>
-                   <select id="req-load-select" style={{ maxWidth: '300px' }}>
+                <div className="tab-toolbar">
+                   <select id="req-load-select" className="tab-toolbar__select">
                       {Object.keys(savedPresets).map(k => <option key={k} value={k}>{k}</option>)}
                    </select>
                    <button className="btn-warning" onClick={() => loadPresetToTab('req', (document.getElementById('req-load-select') as HTMLSelectElement).value)}>Load Preset</button>
-                   <button className="btn-info" style={{ marginLeft: '10px' }} onClick={() => document.getElementById('scan-req')?.click()}>
+                   <button className="btn-info tab-toolbar__scan" onClick={() => document.getElementById('scan-req')?.click()}>
                        <Bot size={16} /> {isScanning ? 'Scanning…' : 'Scan image or paste (Ctrl+V)'}
                    </button>
-                   <input id="scan-req" type="file" style={{display:'none'}} accept="image/*" onChange={(e) => handleFileScan(e, 'req')} />
+                   <input id="scan-req" type="file" className="visually-hidden-file" accept="image/*" onChange={(e) => handleFileScan(e, 'req')} />
                 </div>
                 {lastScanFeedback?.target === 'req' && (
                    <div className="scan-feedback" role="status">{lastScanFeedback.count === 1 ? 'Added 1 charge group from image.' : `Added ${lastScanFeedback.count} charge groups from image.`}</div>
@@ -925,59 +925,59 @@ export default function App() {
 
            {activeTab === 'mgr' && (
              <div>
-                 <div style={{ background: '#fffbeb', color: '#92400e', padding: '12px', borderRadius: '6px', fontSize: '13px', border: '1px solid #fcd34d', marginBottom: '20px' }}>
+                 <div className="mgr-callout">
                     <strong>Presets:</strong> Choose <strong>Create New...</strong> to add a preset from scratch, or pick an existing one to edit. Saving overwrites that preset.
                  </div>
-                 <div style={{ display: 'flex', gap: '15px', alignItems: 'flex-end', marginBottom: '20px' }}>
-                    <div className="input-group" style={{ flex: 1 }}>
+                 <div className="mgr-form-row">
+                    <div className="input-group mgr-form-row__field">
                         <label>Select Preset</label>
                         <select value={mgrSelectedKey} onChange={(e) => handleMgrSelectChange(e.target.value)}>
                             <option>Create New...</option>
                             {Object.keys(savedPresets).map(k => <option key={k} value={k}>{k}</option>)}
                         </select>
                     </div>
-                    <div className="input-group" style={{ flex: 1 }}>
+                    <div className="input-group mgr-form-row__field">
                         <label>Preset Name</label>
                         <input type="text" value={mgrNameInput} onChange={(e) => setMgrNameInput(e.target.value)} disabled={mgrSelectedKey !== 'Create New...'} placeholder="e.g. EU Dest 2024" />
                     </div>
-                    <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-end' }}>
+                    <div className="mgr-actions">
                          <button className="btn-info" onClick={() => document.getElementById('scan-mgr')?.click()} title="Add charges from a photo or pasted image"><Bot size={16} /> {isScanning ? 'Scanning…' : 'Scan image or paste (Ctrl+V)'}</button>
-                         <input id="scan-mgr" type="file" style={{display:'none'}} accept="image/*" onChange={(e) => handleFileScan(e, 'mgr')} />
+                         <input id="scan-mgr" type="file" className="visually-hidden-file" accept="image/*" onChange={(e) => handleFileScan(e, 'mgr')} />
                          <button className="btn-success" onClick={savePreset}>Save Preset</button>
                          <button className="btn-danger" onClick={deletePreset}>Delete</button>
                     </div>
                  </div>
                  {lastScanFeedback?.target === 'mgr' && (
-                   <div className="scan-feedback" role="status" style={{ marginBottom: '16px' }}>{lastScanFeedback.count === 1 ? 'Added 1 charge group from image.' : `Added ${lastScanFeedback.count} charge groups from image.`}</div>
+                   <div className="scan-feedback scan-feedback--mb" role="status">{lastScanFeedback.count === 1 ? 'Added 1 charge group from image.' : `Added ${lastScanFeedback.count} charge groups from image.`}</div>
                  )}
-                 <hr style={{ border: 0, borderTop: '1px solid var(--border)', margin: '20px 0' }} />
+                 <hr className="rule-hr" />
                  {renderEditor('mgr')}
 
-                 <div style={{ marginTop: '20px', borderTop: '1px solid var(--border)', paddingTop: '20px' }}>
-                    <div style={{ cursor: 'pointer', fontSize: '12px', color: 'var(--secondary)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '5px' }} onClick={() => setAdvOpen(!advOpen)}>
-                        <Settings size={14} />
+                 <div className="adv-block">
+                    <button type="button" className="adv-disclosure" aria-expanded={advOpen} onClick={() => setAdvOpen(!advOpen)}>
+                        <Settings size={14} aria-hidden />
                         <span>Advanced Options (Import/Export)</span>
-                        {advOpen ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-                    </div>
+                        {advOpen ? <ChevronUp size={14} aria-hidden /> : <ChevronDown size={14} aria-hidden />}
+                    </button>
                     {advOpen && (
-                        <div style={{ marginTop: '15px', background: '#f8fafc', padding: '15px', borderRadius: '8px', border: '1px solid var(--border)' }}>
-                            <div style={{ marginBottom: '15px', paddingBottom: '15px', borderBottom: '1px solid #e2e8f0' }}>
-                                <label style={{ fontSize: '11px', fontWeight: 700, color: 'var(--secondary)', display: 'block', marginBottom: '5px' }}>AI MODEL</label>
-                                <select value={model} onChange={e => setModel(e.target.value)} style={{ width: '100%' }}>
+                        <div className="adv-panel">
+                            <div className="adv-panel__section">
+                                <label className="adv-panel__label">AI MODEL</label>
+                                <select value={model} onChange={e => setModel(e.target.value)} className="adv-panel__select">
                                     <option value="gemini-3.1-pro-preview">Gemini 3.1 Pro</option>
                                     <option value="gemini-3.1-flash-lite-preview">Gemini 3.1 Flash Lite</option>
                                     <option value="gemini-3-flash-preview">Gemini 3.0 Flash</option>
                                     <option value="gemini-2.5-flash">Gemini 2.5 Flash</option>
                                 </select>
                             </div>
-                            <div style={{ marginBottom: '15px', paddingBottom: '15px', borderBottom: '1px solid #e2e8f0' }}>
-                                <label style={{ fontSize: '11px', fontWeight: 700, color: 'var(--secondary)', display: 'block', marginBottom: '5px' }}>
-                                    REASONING EFFORT {(!model.includes('gemini-3')) && <span style={{fontWeight:'normal', color: '#ef4444'}}>(Not available for 2.5)</span>}
+                            <div className="adv-panel__section">
+                                <label className="adv-panel__label">
+                                    REASONING EFFORT {(!model.includes('gemini-3')) && <span className="text-unavailable">(Not available for 2.5)</span>}
                                 </label>
                                 <select 
                                     value={reasoning} 
                                     onChange={e => setReasoning(e.target.value)} 
-                                    style={{ width: '100%', opacity: model.includes('gemini-3') ? 1 : 0.5, cursor: model.includes('gemini-3') ? 'default' : 'not-allowed' }}
+                                    className={`adv-panel__select${!model.includes('gemini-3') ? ' adv-panel__select--disabled' : ''}`}
                                     disabled={!model.includes('gemini-3')}
                                 >
                                     <option value="auto">Default (Auto)</option>
@@ -985,12 +985,12 @@ export default function App() {
                                     <option value="high">High (Deep)</option>
                                 </select>
                             </div>
-                            <div style={{ display: 'flex', gap: '10px' }}>
+                            <div className="adv-panel__actions">
                                 <button className="btn-info" onClick={() => {
                                     const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify(savedPresets,null,2)],{type:"application/json"})); a.download = "presets.json"; document.body.appendChild(a); a.click(); document.body.removeChild(a);
                                 }}>Export JSON</button>
                                 <button className="btn-dark" onClick={() => document.getElementById('json-import')?.click()}>Import JSON</button>
-                                <input id="json-import" type="file" style={{display:'none'}} accept=".json" onChange={(e) => {
+                                <input id="json-import" type="file" className="visually-hidden-file" accept=".json" onChange={(e) => {
                                     if(e.target.files?.[0]) {
                                         const r = new FileReader();
                                         r.onload = ev => { try { setSavedPresets({...savedPresets, ...JSON.parse(ev.target?.result as string)}); showToast("✅ Imported"); } catch(er){ console.error(er); } };
@@ -1021,7 +1021,7 @@ export default function App() {
                 </div>
            </div>
            
-           <div id="full-report-area" className={`xl-wrapper ${viewMode === 'Comparison' ? 'xl-wrapper-comparison' : 'report-single'}`} style={{marginTop:'20px', padding: '20px', backgroundColor: 'var(--bg-body)', borderRadius: '12px'}}>
+           <div id="full-report-area" className={`xl-wrapper full-report-surface ${viewMode === 'Comparison' ? 'xl-wrapper-comparison' : 'report-single'}`}>
               <div className="xl-info-box"><strong>SHIPMENT DETAILS:</strong>&nbsp;&nbsp; CBM: {globals.cbm.toFixed(3)} &nbsp;|&nbsp; KGS: {globals.kgs.toFixed(3)} &nbsp;|&nbsp; PKGS: {globals.pkgs}</div>
               {viewMode === 'Comparison' && renderComparisonTable()}
               {viewMode === 'Standard' && renderReportTable(stdRes, stdData.title, false)}
@@ -1032,10 +1032,10 @@ export default function App() {
 
         {/* SIDEBAR */}
         <div className={`history-sidebar ${sidebarCollapsed ? 'collapsed' : ''}`} id="sidebar">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                <h4 style={{ margin: 0, fontWeight: 700 }}>History</h4>
-                <div style={{ display: 'flex', gap: '4px' }}>
-                   <button className="btn-secondary" style={{ padding: '4px 8px' }} onClick={() => setSidebarCollapsed(!sidebarCollapsed)}><X size={14} /></button>
+            <div className="sidebar-head">
+                <h4>History</h4>
+                <div className="sidebar-head-actions">
+                   <button type="button" className="btn-secondary btn-icon-sidebar" onClick={() => setSidebarCollapsed(!sidebarCollapsed)}><X size={14} /></button>
                 </div>
             </div>
 
@@ -1057,18 +1057,18 @@ export default function App() {
                 )}
             </div>
 
-            <div style={{ display: 'flex', gap: '4px', marginBottom: '10px' }}>
-                   <button className="btn-info" style={{ flex: 1, fontSize: '11px', padding: '6px 8px' }} onClick={exportCurrentHistory} title={`Export ${historyView}`}><Download size={12} /> Export</button>
-                   <button className="btn-dark" style={{ flex: 1, fontSize: '11px', padding: '6px 8px' }} onClick={() => document.getElementById('hist-import')?.click()} title="Import (Temp View)"><Upload size={12} /> Import</button>
-                   <input id="hist-import" type="file" style={{display:'none'}} accept=".json" onChange={handleHistoryImport} />
-                   <button className="btn-secondary" style={{ flex: 1, fontSize: '11px', padding: '6px 8px' }} onClick={clearCurrentHistory} title={`Clear ${historyView}`}><Trash2 size={12} /> Clear</button>
+            <div className="history-toolbar">
+                   <button type="button" className="btn-info" onClick={exportCurrentHistory} title={`Export ${historyView}`}><Download size={12} /> Export</button>
+                   <button type="button" className="btn-dark" onClick={() => document.getElementById('hist-import')?.click()} title="Import (Temp View)"><Upload size={12} /> Import</button>
+                   <input id="hist-import" type="file" className="visually-hidden-file" accept=".json" onChange={handleHistoryImport} />
+                   <button type="button" className="btn-secondary" onClick={clearCurrentHistory} title={`Clear ${historyView}`}><Trash2 size={12} /> Clear</button>
             </div>
 
-            <input type="text" placeholder="Search Ref#..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} style={{ marginBottom: '15px' }} />
+            <input type="text" className="history-search" placeholder="Search Ref#..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
             
             <div id="history-list">
                 {activeHistoryList.filter(h => h.ref.toLowerCase().includes(searchTerm.toLowerCase())).length === 0 && (
-                <div className="empty-state" style={{ marginTop: '20px' }}>
+                <div className="empty-state empty-state--padded">
                   {historyView === 'saved' ? (
                     <>
                       <strong>No snapshots yet</strong>
@@ -1088,11 +1088,11 @@ export default function App() {
                             <button className="btn-hist-del" onClick={(e) => { e.stopPropagation(); deleteHistoryItem(h.id); }}><X size={14} /></button>
                             <span className="history-ref">{h.ref}</span>
                             <div className="history-meta">{h.timestamp} | {h.cbm}m³ | {h.kgs}kg | {h.pkgs}pkgs</div>
-                            <div className="history-res" style={{ fontSize: '11px' }}>
+                            <div className="history-res">
                                 {Object.entries(h.summary).map(([curr, val]) => (
-                                    <div key={curr} style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                    <div key={curr} className="history-diff-line">
                                         <span>{curr} {val.std.toFixed(2)}</span>
-                                        <span style={{ color: val.diff >= 0 ? 'var(--danger)' : 'var(--success)', fontWeight: 'bold' }}>
+                                        <span className={`history-diff-line__delta ${val.diff >= 0 ? 'history-diff-line__delta--pos' : 'history-diff-line__delta--neg'}`}>
                                             {val.diff >= 0 ? '+' : ''}{val.diff.toFixed(2)}
                                         </span>
                                     </div>

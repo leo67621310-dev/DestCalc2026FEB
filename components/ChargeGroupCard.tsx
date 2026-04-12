@@ -98,7 +98,7 @@ export const ChargeGroupCard: React.FC<Props> = ({
     >
       {/* HEADER MATCHING HTML STRUCTURE */}
       <div className="cg-header">
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <div className="cg-header__title-row">
           <span 
              className="group-drag-handle" 
              draggable 
@@ -140,11 +140,11 @@ export const ChargeGroupCard: React.FC<Props> = ({
               <input 
                 type="number" 
                 value={group.multiplier_value} 
-                style={{ width: '50px', padding: '2px', border: '1px solid #bae6fd', fontSize: '11px' }}
+                className="multiplier-value-input"
                 onChange={(e) => onUpdateGroup(groupIdx, 'multiplier_value', e.target.value)}
               />
               <span 
-                style={{ cursor: 'pointer', display: 'flex', alignItems: 'center' }} 
+                className="multiplier-remove-hit"
                 onClick={() => onUpdateGroup(groupIdx, 'multiplier_active', false)} 
                 title="Remove Multiplier"
               >
@@ -153,8 +153,7 @@ export const ChargeGroupCard: React.FC<Props> = ({
             </div>
           ) : (
             <button 
-              className="btn-icon-only" 
-              style={{ border: '1px solid var(--border)' }}
+              className="btn-icon-only btn-icon-only--outlined"
               onClick={() => onUpdateGroup(groupIdx, 'multiplier_active', true)}
               title="Add Time/Qty Multiplier"
             >
@@ -163,7 +162,7 @@ export const ChargeGroupCard: React.FC<Props> = ({
           )}
 
           <select 
-            style={{ width: '60px', padding: '4px' }}
+            className="cg-select--currency"
             value={group.currency} 
             onChange={(e) => onUpdateGroup(groupIdx, 'currency', e.target.value)}
           >
@@ -171,7 +170,7 @@ export const ChargeGroupCard: React.FC<Props> = ({
           </select>
 
           <select 
-            style={{ width: '110px', padding: '4px' }}
+            className="cg-select--logic"
             value={group.logic} 
             onChange={(e) => onUpdateGroup(groupIdx, 'logic', e.target.value)}
           >
@@ -252,8 +251,8 @@ export const ChargeGroupCard: React.FC<Props> = ({
                       onChange={(e) => onUpdateRow(groupIdx, rIdx, 'divisor', e.target.value)} 
                     />
                     <button 
-                      className="btn-icon-only" 
-                      style={{ width: '24px', height: '100%', marginLeft: '2px', color: 'var(--danger)' }}
+                      type="button"
+                      className="btn-icon-only btn-remove-divisor"
                       onClick={() => onUpdateRow(groupIdx, rIdx, 'use_divisor', false)}
                       title="Remove Divisor"
                     >
@@ -294,9 +293,10 @@ export const ChargeGroupCard: React.FC<Props> = ({
                 </select>
 
                 {['CBM', 'TON', 'RT', 'KGS'].includes(row.unit) ? (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <div className="round-up-row">
                     <input 
                       type="checkbox" 
+                      className="input-round-checkbox"
                       checked={!!row.round_up} 
                       onChange={(e) => {
                         onUpdateRow(groupIdx, rIdx, 'round_up', e.target.checked);
@@ -305,13 +305,12 @@ export const ChargeGroupCard: React.FC<Props> = ({
                         }
                       }} 
                       title="Round up unit"
-                      style={{ width: '14px', height: '14px', margin: 0, cursor: 'pointer' }}
                     />
                     {row.round_up && (
                       <select 
                         value={row.round_up_decimals || 0} 
                         onChange={(e) => onUpdateRow(groupIdx, rIdx, 'round_up_decimals', parseInt(e.target.value))}
-                        style={{ width: '40px', padding: '2px', fontSize: '10px' }}
+                        className="select-round-decimals"
                         title="Decimal places"
                       >
                         <option value={0}>0</option>
@@ -329,7 +328,7 @@ export const ChargeGroupCard: React.FC<Props> = ({
                 <div>
                   <div className={minBoxClass}>
                     <select 
-                      style={{ width: '85px', fontSize: '10px', padding: '2px' }}
+                      className="min-type-select"
                       value={row.min_type}
                       onChange={(e) => onUpdateRow(groupIdx, rIdx, 'min_type', e.target.value)}
                     >
@@ -339,7 +338,7 @@ export const ChargeGroupCard: React.FC<Props> = ({
                     <input 
                       type="number" 
                       value={row.min_qty || ''} 
-                      style={{ flex: 1, minWidth: 0, textAlign: 'center' }}
+                      className="min-qty-input"
                       placeholder={mType === 'QTY' ? 'Units' : 'Opt. Min'}
                       onChange={(e) => onUpdateRow(groupIdx, rIdx, 'min_qty', e.target.value)}
                     />
@@ -347,8 +346,8 @@ export const ChargeGroupCard: React.FC<Props> = ({
                 </div>
 
                 <button 
-                  className="btn-icon-only" 
-                  style={{ color: 'var(--danger)' }}
+                  type="button"
+                  className="btn-icon-only btn-icon-only--danger"
                   onClick={() => onRemoveRow(groupIdx, rIdx)}
                 >
                   <X size={16} />
