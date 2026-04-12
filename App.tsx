@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { AlertTriangle, History as HistoryIcon, Camera, Bot, Settings, ChevronUp, ChevronDown, Download, Upload, Trash2, X, Plus, Image as ImageIcon } from 'lucide-react';
-import html2canvas from 'html2canvas';
+import { toJpeg } from 'html-to-image';
 import { ChargeData, Group, HistoryItem, CHARGE_TEMPLATES, CURRENCIES, DEFAULT_PRESETS, PresetsMap } from './types';
 import { calculateCharges } from './utils/calculations';
 import { ChargeGroupCard } from './components/ChargeGroupCard';
@@ -399,19 +399,33 @@ export default function App() {
   const activeHistoryList = historyView === 'saved' ? history : importedHistory;
 
   // --- EXPORT IMAGE ---
+  // Uses html-to-image (browser SVG snapshot) instead of html2canvas, which often breaks on
+  // modern CSS such as oklch() used in index.css.
   const exportAsImage = async (elementId: string, filename: string) => {
     const el = document.getElementById(elementId);
-    if (!el) return;
+    if (!el) {
+      showToast('Could not find report area to export.');
+      return;
+    }
     try {
-      const canvas = await html2canvas(el, { scale: 2, backgroundColor: '#ffffff' });
-      const url = canvas.toDataURL('image/jpeg', 0.9);
+      showToast('Generating image…');
+      const dataUrl = await toJpeg(el, {
+        quality: 0.92,
+        pixelRatio: 2,
+        backgroundColor: '#ffffff',
+        cacheBust: true,
+      });
       const a = document.createElement('a');
-      a.href = url;
+      a.href = dataUrl;
       a.download = filename;
+      a.rel = 'noopener';
+      document.body.appendChild(a);
       a.click();
+      document.body.removeChild(a);
+      showToast('Image downloaded');
     } catch (err) {
       console.error(err);
-      alert('Failed to export image');
+      alert('Export failed. If this keeps happening, try collapsing long tables or use the browser Print dialog instead.');
     }
   };
 
