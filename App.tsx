@@ -674,13 +674,13 @@ export default function App() {
                       ) : (
                         <>
                           <td
-                            className={`col-item ${lHas ? 'comparison-cell-interactive' : ''}`}
+                            className="col-item"
                             onClick={() => lHas && toggleRow(lKey)}
                           >
                             {l!.item}
                           </td>
                           <td
-                            className={`col-desc ${lHas ? 'comparison-cell-interactive' : ''}`}
+                            className="col-desc"
                             onClick={() => lHas && toggleRow(lKey)}
                           >
                             {l!.desc}
@@ -690,10 +690,10 @@ export default function App() {
                               </span>
                             )}
                           </td>
-                          <td className={`col-curr ${lHas ? 'comparison-cell-interactive' : ''}`} onClick={() => lHas && toggleRow(lKey)}>
+                          <td className="col-curr" onClick={() => lHas && toggleRow(lKey)}>
                             {l!.curr}
                           </td>
-                          <td className={`col-amt ${lHas ? 'comparison-cell-interactive' : ''}`} onClick={() => lHas && toggleRow(lKey)}>
+                          <td className="col-amt" onClick={() => lHas && toggleRow(lKey)}>
                             {l!.amount.toFixed(2)}
                           </td>
                         </>
@@ -705,13 +705,13 @@ export default function App() {
                       ) : (
                         <>
                           <td
-                            className={`col-item comparison-divider ${rHas ? 'comparison-cell-interactive' : ''}`}
+                            className="col-item comparison-divider"
                             onClick={() => rHas && toggleRow(rKey)}
                           >
                             {rrow!.item}
                           </td>
                           <td
-                            className={`col-desc ${rHas ? 'comparison-cell-interactive' : ''}`}
+                            className="col-desc"
                             onClick={() => rHas && toggleRow(rKey)}
                           >
                             {rrow!.desc}
@@ -721,10 +721,10 @@ export default function App() {
                               </span>
                             )}
                           </td>
-                          <td className={`col-curr ${rHas ? 'comparison-cell-interactive' : ''}`} onClick={() => rHas && toggleRow(rKey)}>
+                          <td className="col-curr" onClick={() => rHas && toggleRow(rKey)}>
                             {rrow!.curr}
                           </td>
-                          <td className={`col-amt ${rHas ? 'comparison-cell-interactive' : ''}`} onClick={() => rHas && toggleRow(rKey)}>
+                          <td className="col-amt" onClick={() => rHas && toggleRow(rKey)}>
                             {rrow!.amount.toFixed(2)}
                           </td>
                         </>
