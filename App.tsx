@@ -20,7 +20,6 @@ export default function App() {
   
   const [globals, setGlobals] = useState({ cbm: 3.000, kgs: 250.0, pkgs: 3, ref: '' });
   const [viewMode, setViewMode] = useState('Comparison');
-  const [showInlineDiff, setShowInlineDiff] = useState(false);
   const [model, setModel] = useState('gemini-2.5-flash');
   const [reasoning, setReasoning] = useState('low');
   
@@ -518,26 +517,10 @@ export default function App() {
                         )
                     }
 
-                    let diffClass = '';
-                    let diffAmountStr = '';
-                    if (showInlineDiff && diffRes && showDiff) {
-                        const match = diffRes.rows.find((dr: any) => dr.item === r.item && dr.curr === r.curr);
-                        if (!match) {
-                            diffClass = 'row-diff-new';
-                            diffAmountStr = ' (New)';
-                        } else if (r.amount > match.amount) {
-                            diffClass = 'row-diff-higher';
-                            diffAmountStr = ` (+${(r.amount - match.amount).toFixed(2)})`;
-                        } else if (r.amount < match.amount) {
-                            diffClass = 'row-diff-lower';
-                            diffAmountStr = ` (${(r.amount - match.amount).toFixed(2)})`;
-                        }
-                    }
-
                     return (
                         <React.Fragment key={i}>
                         <tr 
-                            className={`xl-row ${diffClass} ${r.candidates && r.candidates.length > 0 ? 'expandable' : ''}`}
+                            className={`xl-row ${r.candidates && r.candidates.length > 0 ? 'expandable' : ''}`}
                             onClick={() => {
                                 if (r.candidates && r.candidates.length > 0) {
                                     toggleRow(`${title}-${i}`);
@@ -554,7 +537,6 @@ export default function App() {
                         <td className="col-curr">{r.curr}</td>
                         <td className="col-amt">
                             {r.amount.toFixed(2)}
-                            {diffAmountStr && <span style={{ fontSize: '11px', marginLeft: '6px', opacity: 0.8 }}>{diffAmountStr}</span>}
                         </td>
                         </tr>
                         {expandedRows[`${title}-${i}`] && r.candidates && (
@@ -802,25 +784,17 @@ export default function App() {
            )}
 
            {/* OUTPUT */}
-           <div className="output-controls" style={{ marginTop: '30px', borderTop: '1px solid var(--border)', paddingTop: '25px', display: 'flex', gap: '15px', alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <label style={{ fontSize: '13px', fontWeight: 600, color: 'var(--secondary)' }}>Report view</label>
-                    <select value={viewMode} onChange={(e) => setViewMode(e.target.value)} style={{ width: '220px' }}>
+           <div className="output-controls">
+                <div className="output-controls-row">
+                    <label className="output-controls-label" htmlFor="report-view-select">Report view</label>
+                    <select id="report-view-select" value={viewMode} onChange={(e) => setViewMode(e.target.value)} className="output-controls-select">
                         <option value="Comparison">Side-by-side (standard vs requested)</option>
                         <option value="Standard">Standard only</option>
                         <option value="Requested">Requested only</option>
                     </select>
                 </div>
-                {viewMode === 'Comparison' && (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginLeft: '10px', paddingLeft: '20px', borderLeft: '1px solid var(--border)' }}>
-                        <label style={{ fontSize: '13px', fontWeight: 600, color: 'var(--secondary)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                            <input type="checkbox" checked={showInlineDiff} onChange={e => setShowInlineDiff(e.target.checked)} style={{ width: '16px', height: '16px', margin: 0, cursor: 'pointer', boxShadow: 'none' }} />
-                            Highlight row differences
-                        </label>
-                    </div>
-                )}
-                <div style={{ marginLeft: 'auto' }}>
-                    <button className="btn-secondary" onClick={() => exportAsImage('full-report-area', `Freight-Report-${globals.ref || 'Export'}.jpg`)}>
+                <div className="output-controls-row">
+                    <button type="button" className="btn-secondary" onClick={() => exportAsImage('full-report-area', `Freight-Report-${globals.ref || 'Export'}.jpg`)}>
                         <ImageIcon size={16} /> Export Report to JPG
                     </button>
                 </div>
