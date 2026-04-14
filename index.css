@@ -724,33 +724,44 @@ button:active { transform: scale(0.96); box-shadow: var(--shadow); }
 
 .table-wrapper { flex: 1; display: flex; flex-direction: column; min-width: 0; }
 .xl-table { width: 100%; border-collapse: collapse; font-size: 13px; table-layout: auto; }
+/* Single report: true grid columns so Description consumes leftover space */
+.xl-table:not(.xl-table-comparison) thead tr,
+.xl-table:not(.xl-table-comparison) tbody tr.xl-row {
+  display: grid;
+  grid-template-columns: minmax(10ch, 14ch) minmax(0, 1fr) 5ch 10ch;
+  width: 100%;
+}
+.xl-table:not(.xl-table-comparison) td[colspan="4"],
+.xl-table:not(.xl-table-comparison) th[colspan="4"] {
+  grid-column: 1 / -1;
+}
 /* Item | Description (fills remaining space) | Cur (tight) | Amount (tight) */
 .xl-table .col-item {
-  width: 14ch;
-  min-width: 12ch;
+  width: auto;
+  min-width: 0;
   word-break: normal;
   overflow-wrap: break-word;
 }
 .xl-table .col-desc {
   width: auto;
-  min-width: 30ch;
+  min-width: 0;
   white-space: normal;
   word-break: keep-all;
   overflow-wrap: break-word;
   line-height: 1.45;
 }
 .xl-table .col-curr {
-  width: 5ch;
-  min-width: 5ch;
-  max-width: 5ch;
+  width: auto;
+  min-width: 0;
+  max-width: none;
   white-space: nowrap;
   padding-left: 4px;
   padding-right: 2px;
   text-align: right;
 }
 .xl-table .col-amt {
-  width: 10ch;
-  min-width: 10ch;
+  width: auto;
+  min-width: 0;
   white-space: nowrap;
   padding-left: 4px;
 }
@@ -875,14 +886,37 @@ button:active { transform: scale(0.96); box-shadow: var(--shadow); }
 .xl-table-comparison {
   width: 100%;
   min-width: 960px;
-  table-layout: fixed;
+  table-layout: auto;
 }
-/* Eight columns locked to 50/50 (left panel 50%, right panel 50%) */
+/* Comparison report:
+   - row 1 (panel titles): 50/50 split
+   - row 2 + body: mirrored 4-column grids on each side
+*/
+.xl-table-comparison thead tr:first-child,
+.xl-table-comparison tbody tr.comparison-footer-row,
+.xl-table-comparison tbody tr.comparison-expanded-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  width: 100%;
+}
+.xl-table-comparison thead tr:nth-child(2),
+.xl-table-comparison tbody tr.comparison-pair-row {
+  display: grid;
+  grid-template-columns:
+    minmax(8ch, 12ch) minmax(0, 1fr) 5ch 10ch
+    minmax(8ch, 12ch) minmax(0, 1fr) 5ch 10ch;
+  width: 100%;
+}
+.xl-table-comparison tbody tr.comparison-pair-row td[colspan="4"],
+.xl-table-comparison thead tr:first-child th[colspan="4"] {
+  grid-column: span 4;
+}
 .xl-table-comparison thead tr:nth-child(2) th:nth-child(1),
 .xl-table-comparison thead tr:nth-child(2) th:nth-child(5),
 .xl-table-comparison tbody tr.comparison-pair-row td:nth-child(1),
 .xl-table-comparison tbody tr.comparison-pair-row td:nth-child(5) {
-  width: 6%;
+  width: auto;
+  min-width: 0;
   word-break: normal;
   overflow-wrap: break-word;
 }
@@ -890,7 +924,8 @@ button:active { transform: scale(0.96); box-shadow: var(--shadow); }
 .xl-table-comparison thead tr:nth-child(2) th:nth-child(6),
 .xl-table-comparison tbody tr.comparison-pair-row td:nth-child(2),
 .xl-table-comparison tbody tr.comparison-pair-row td:nth-child(6) {
-  width: 40%;
+  width: auto;
+  min-width: 0;
   white-space: normal;
   word-break: keep-all;
   overflow-wrap: break-word;
@@ -900,9 +935,9 @@ button:active { transform: scale(0.96); box-shadow: var(--shadow); }
 .xl-table-comparison thead tr:nth-child(2) th:nth-child(7),
 .xl-table-comparison tbody tr.comparison-pair-row td:nth-child(3),
 .xl-table-comparison tbody tr.comparison-pair-row td:nth-child(7) {
-  width: 1%;
-  max-width: 2rem;
+  width: auto;
   min-width: 0;
+  max-width: none;
   white-space: nowrap;
   padding-left: 2px;
   padding-right: 2px;
@@ -912,8 +947,8 @@ button:active { transform: scale(0.96); box-shadow: var(--shadow); }
 .xl-table-comparison thead tr:nth-child(2) th:nth-child(8),
 .xl-table-comparison tbody tr.comparison-pair-row td:nth-child(4),
 .xl-table-comparison tbody tr.comparison-pair-row td:nth-child(8) {
-  width: 3%;
-  min-width: 3.5rem;
+  width: auto;
+  min-width: 0;
   white-space: nowrap;
   padding-left: 4px;
 }
