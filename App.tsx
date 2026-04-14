@@ -1,16 +1,22 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { AlertTriangle, History as HistoryIcon, Camera, Bot, Settings, ChevronUp, ChevronDown, Download, Upload, Trash2, X, Plus, Image as ImageIcon } from 'lucide-react';
+import { AlertTriangle, History as HistoryIcon, Camera, Bot, Settings, ChevronUp, ChevronDown, Image as ImageIcon } from 'lucide-react';
 import { toJpeg } from 'html-to-image';
-import { DragDropContext, Droppable, DropResult } from '@hello-pangea/dnd';
+import { DragDropContext, DropResult } from '@hello-pangea/dnd';
 import { ChargeData, Group, HistoryItem, CHARGE_TEMPLATES, CURRENCIES, DEFAULT_PRESETS, PresetsMap } from './types';
 import { calculateCharges } from './utils/calculations';
-import { ChargeGroupCard } from './components/ChargeGroupCard';
+import { ensureIds, mapScannedGroups } from './utils/dataTransforms';
+import { ComparisonTable, ReportTable } from './components/ReportTables';
+import { EditorPanel } from './components/EditorPanel';
+import { HistorySidebar } from './components/HistorySidebar';
 
 const STORAGE_KEY = 'fcc_v5_modular_react';
 
 const EMPTY_STRUCTURE: ChargeData = { groups: [], title: '' };
 
 export default function App() {
+  type ToastType = 'info' | 'success' | 'warning' | 'error';
+  type ToastState = { message: string; type: ToastType } | null;
+
   // --- STATE ---
   const [stdData, setStdData] = useState<ChargeData>({ title: "Standard Charges", groups: [] });
   const [reqData, setReqData] = useState<ChargeData>({ title: "Requested Charges", groups: [] });
@@ -33,9 +39,10 @@ export default function App() {
   const [advOpen, setAdvOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   
-  const [toast, setToast] = useState<string | null>(null);
+  const [toast, setToast] = useState<ToastState>(null);
   const [isScanning, setIsScanning] = useState(false);
   const [lastScanFeedback, setLastScanFeedback] = useState<{ count: number; target: 'std' | 'req' | 'mgr'; groupIds: string[] } | null>(null);
+  const scanDelayTimerRef = useRef<number | null>(null);
 
   // --- DRAG STATE ---
   const dragItem = useRef<{ type: 'group' | 'row', prefix: string, gIdx: number, rIdx?: number } | null>(null);
@@ -47,18 +54,6 @@ export default function App() {
       try {
         const parsed = JSON.parse(saved);
         
-        // Ensure all groups and rows have IDs when loading from older versions
-        const ensureIds = (data: any) => {
-           if (!data || !data.groups) return data;
-           data.groups.forEach((g: any) => {
-               if (!g.id) g.id = 'g_' + Math.random().toString(36).substr(2, 9);
-               g.rows.forEach((r: any) => {
-                   if (!r.id) r.id = 'r_' + Math.random().toString(36).substr(2, 9);
-               });
-           });
-           return data;
-        };
-
         setStdData(ensureIds(parsed.std) || EMPTY_STRUCTURE);
         setReqData(ensureIds(parsed.req) || EMPTY_STRUCTURE);
         
@@ -98,9 +93,16 @@ export default function App() {
   }, [lastScanFeedback]);
 
   // --- HELPERS ---
-  const showToast = (msg: string) => {
-    setToast(msg);
-    setTimeout(() => setToast(null), 3000);
+  const showToast = (message: string, type: ToastType = 'info', duration = 3000) => {
+    setToast({ message, type });
+    window.setTimeout(() => setToast(null), duration);
+  };
+
+  const clearScanDelayTimer = () => {
+    if (scanDelayTimerRef.current !== null) {
+      window.clearTimeout(scanDelayTimerRef.current);
+      scanDelayTimerRef.current = null;
+    }
   };
 
   const getTarget = (tab: string) => {
@@ -209,7 +211,11 @@ export default function App() {
 
   const processScanFile = async (file: File, prefix: string) => {
     setIsScanning(true);
-    showToast(`⏳ Processing image for ${prefix.toUpperCase()}...`);
+    showToast(`⏳ Processing image for ${prefix.toUpperCase()}...`, 'info', 3200);
+    clearScanDelayTimer();
+    scanDelayTimerRef.current = window.setTimeout(() => {
+      showToast('Still scanning... this can take longer for larger images or slower API responses.', 'warning', 5000);
+    }, 8000);
 
     try {
       const base64 = await new Promise<string>((resolve, reject) => {
@@ -243,33 +249,15 @@ export default function App() {
       const parsed = JSON.parse(result.text);
 
       // Map to structure
-      const newGroups = (parsed.groups || []).map((g: any) => ({
-          id: 'g_' + Math.random().toString(36).substr(2, 9),
-          title: g.title || "Charge",
-          currency: (g.currency || 'EUR').toUpperCase(),
-          logic: g.logic || 'SUM',
-          multiplier_active: !!g.is_storage,
-          multiplier_value: g.min_days || 1,
-          rows: (g.rows || []).map((r: any) => ({
-              id: 'r_' + Math.random().toString(36).substr(2, 9),
-              rate: r.rate || 0,
-              divisor: r.divisor || 1,
-              use_divisor: (r.divisor && r.divisor !== 1),
-              unit: (r.unit || 'FLAT').toUpperCase().replace('M3','CBM').replace('KG','KGS').replace('TONS','TON').replace('LS','FLAT').replace('SHIPMENT','SHPT').replace('% GROUP', '% ITEM'),
-              condition: r.condition || 'NONE',
-              min_type: 'AMT',
-              min_qty: 0,
-              round_up: r.round_up || false,
-              round_up_decimals: r.round_up_decimals !== undefined ? r.round_up_decimals : 0
-          }))
-      }));
+      const newGroups = mapScannedGroups(parsed);
 
       addGroupsToTarget(prefix, newGroups);
-      showToast(`✅ Added ${newGroups.length} groups.`);
+      showToast(`✅ Added ${newGroups.length} groups.`, 'success');
       setLastScanFeedback({ count: newGroups.length, target: prefix as 'std' | 'req' | 'mgr', groupIds: newGroups.map((gr: Group) => gr.id) });
     } catch (err: any) {
-      alert("Scan failed: " + (err?.message || "Something went wrong.") + " Use a clear image of a charges table or try again.");
+      showToast(`Scan failed: ${err?.message || 'Something went wrong.'} Use a clear image of a charges table or try again.`, 'error', 8000);
     } finally {
+      clearScanDelayTimer();
       setIsScanning(false);
     }
   };
@@ -401,16 +389,6 @@ export default function App() {
            // Sort descending by ID
            imported.sort((a: any, b: any) => b.id - a.id);
            
-           const ensureIds = (data: any) => {
-               if (!data || !data.groups) return data;
-               data.groups.forEach((g: any) => {
-                   if (!g.id) g.id = 'g_' + Math.random().toString(36).substr(2, 9);
-                   g.rows.forEach((r: any) => {
-                       if (!r.id) r.id = 'r_' + Math.random().toString(36).substr(2, 9);
-                   });
-               });
-               return data;
-            };
             imported.forEach((h: any) => {
                 ensureIds(h.snap_std);
                 ensureIds(h.snap_req);
@@ -487,59 +465,6 @@ export default function App() {
   };
 
   // --- RENDERERS ---
-  const renderEditor = (prefix: string) => {
-      const { data, set } = getTarget(prefix);
-      return (
-        <div>
-          <div className="input-row input-row--spaced">
-             <div className="input-group">
-                 <label>Section Title</label>
-                 <input type="text" value={data.title} onChange={e => set({...data, title: e.target.value})} className="input-emphasis" />
-             </div>
-          </div>
-          
-          <Droppable droppableId={`groups-${prefix}`} type="group">
-            {(provided) => (
-              <div 
-                id={`${prefix}-groups-container`}
-                {...provided.droppableProps}
-                ref={provided.innerRef}
-              >
-                 {data.groups.map((g, i) => (
-                     <ChargeGroupCard 
-                        key={g.id}
-                        prefix={prefix}
-                        group={g}
-                        groupIdx={i}
-                        isNewlyAdded={lastScanFeedback?.target === prefix && lastScanFeedback?.groupIds?.includes(g.id)}
-                        onUpdateGroup={(idx, f, v) => handleUpdateGroup(prefix, idx, f, v)}
-                        onRemoveGroup={(idx) => removeGroup(prefix, idx)}
-                        onUpdateRow={(gi, ri, f, v) => handleUpdateRow(prefix, gi, ri, f, v)}
-                        onRemoveRow={(gi, ri) => removeRow(prefix, gi, ri)}
-                        onAddRow={(gi) => addRow(prefix, gi)}
-                     />
-                 ))}
-                 {provided.placeholder}
-              </div>
-            )}
-          </Droppable>
-
-          <div className="preset-action-bar">
-             <button className="btn-primary" onClick={() => addGroup(prefix, 'EMPTY')}><Plus size={16} /> Add Item</button>
-             <div className="preset-action-bar__or">
-                 <span className="label-or-preset">OR ADD PRESET:</span>
-                 <select id={`${prefix}-tpl-select`} className="preset-action-bar__select">
-                    {Object.keys(CHARGE_TEMPLATES).map(k => <option key={k} value={k}>{k}</option>)}
-                 </select>
-                 <button className="btn-secondary" onClick={() => {
-                     const sel = document.getElementById(`${prefix}-tpl-select`) as HTMLSelectElement;
-                     addGroup(prefix, sel.value);
-                 }}>Add Charges Preset</button>
-             </div>
-          </div>
-        </div>
-      );
-  };
 
   const [expandedRows, setExpandedRows] = useState<Record<string, boolean>>({});
 
@@ -547,359 +472,13 @@ export default function App() {
     setExpandedRows(prev => ({ ...prev, [id]: !prev[id] }));
   };
 
-  const renderDescLines = (desc?: string) => {
-    if (!desc) return null;
-    const parts = String(desc)
-      .split('|')
-      .map((p) => p.trim())
-      .filter(Boolean);
-    if (parts.length <= 1) return <>{desc}</>;
-    return (
-      <>
-        {parts.map((part, idx) => (
-          <span key={`${part}-${idx}`} className="desc-line">{part}</span>
-        ))}
-      </>
-    );
-  };
-
-  const renderReportTable = (
-    res: any,
-    title: string,
-    showDiff: boolean,
-    diffRes?: any,
-    minRows?: number,
-    activeCurrencies: string[] = [],
-    reportVariant: 'standard' | 'requested' = 'standard',
-  ) => {
-      // Use passed activeCurrencies for consistent footer height/alignment
-      // If not passed (single view), fall back to active in current result
-      const currenciesToShow = activeCurrencies.length > 0 
-          ? activeCurrencies 
-          : CURRENCIES.filter(c => res.totals[c] > 0);
-      
-      // Calculate rows to render, adding padding if needed
-      const displayRows = [...res.rows];
-      if (minRows && displayRows.length < minRows) {
-          const padCount = minRows - displayRows.length;
-          for(let i=0; i<padCount; i++) {
-              displayRows.push({ is_pad: true });
-          }
-      }
-
-      return (
-        <div
-          className={`report-card${reportVariant === 'requested' ? ' report-card--requested' : ''}`}
-          id={`report-${title.replace(/\s+/g, '-')}`}
-        >
-           <div className={`table-title${reportVariant === 'requested' ? ' table-title--requested' : ''}`}>
-               {title}
-           </div>
-           <div className="table-wrapper">
-             <table className="xl-table">
-               <thead><tr><th className="xl-header col-item">Item</th><th className="xl-header col-desc">Description</th><th className="xl-header col-curr">Cur</th><th className="xl-header col-amt">Amount</th></tr></thead>
-               <tbody>
-                  {displayRows.length === 0 && <tr><td colSpan={4}><div className="empty-state"><strong>No charge lines yet</strong><p>Add items above or load a preset to see totals and differences here.</p></div></td></tr>}
-                  {displayRows.map((r: any, i: number) => {
-                    if (r.is_pad) {
-                        return (
-                            <tr key={`pad-${i}`} className="xl-row pad-row">
-                                <td colSpan={4}>&nbsp;</td>
-                            </tr>
-                        )
-                    }
-
-                    return (
-                        <React.Fragment key={i}>
-                        <tr 
-                            className={`xl-row ${r.candidates && r.candidates.length > 0 ? 'expandable' : ''}`}
-                            onClick={() => {
-                                if (r.candidates && r.candidates.length > 0) {
-                                    toggleRow(`${title}-${i}`);
-                                }
-                            }}
-                        >
-                        <td className="col-item">
-                            {r.item}
-                        </td>
-                        <td className="col-desc">
-                            {renderDescLines(r.desc)}
-                            {r.subtext && <span className="calc-subtext"><span className="min-highlight">{r.subtext}</span></span>}
-                        </td>
-                        <td className="col-curr">{r.curr}</td>
-                        <td className="col-amt">
-                            {r.amount.toFixed(2)}
-                        </td>
-                        </tr>
-                        {expandedRows[`${title}-${i}`] && r.candidates && (
-                            <tr className="xl-row expanded-details-row">
-                                <td colSpan={4} className="td-cell-flush">
-                                    <div className="expanded-details">
-                                        <div className="expanded-header">Calculation Details</div>
-                                        {r.candidates.map((c: any, cIdx: number) => (
-                                            <div key={cIdx} className={`candidate-item ${c.is_winner ? 'winner' : ''}`}>
-                                                <div className="candidate-desc">
-                                                    <strong>{c.cond !== 'NONE' ? `[${c.cond}] ` : ''}</strong>
-                                                    {c.desc}
-                                                    {c.is_winner && <span className="winner-badge">Applied</span>}
-                                                </div>
-                                                <div className="candidate-calc">{c.calc_string}</div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </td>
-                            </tr>
-                        )}
-                        </React.Fragment>
-                    )
-                  })}
-               </tbody>
-             </table>
-           </div>
-           <div className="footer-container">
-               <div className="footer-section totals">
-                  {currenciesToShow.length > 0 ? currenciesToShow.map(c => (
-                      <div key={c} className="stat-line">
-                         <span className="stat-lbl">TOTAL {c}</span> <span className="stat-val">{res.totals[c]?.toFixed(2) || '0.00'}</span>
-                      </div>
-                  )) : <div className="stat-line"><span className="stat-lbl">TOTAL</span> <span className="stat-val">0.00</span></div>}
-               </div>
-               
-               <div className={`footer-section diffs${!showDiff ? ' footer-section--diff-hidden' : ''}`}>
-                  {currenciesToShow.length > 0 ? currenciesToShow.map(c => {
-                      let d = 0;
-                      if (showDiff && diffRes) {
-                         d = (res.totals[c] || 0) - (diffRes.totals[c] || 0);
-                      }
-                      const sign = d >= 0 ? '+' : '';
-                      return (
-                        <div key={c} className="stat-line">
-                            <span className="stat-lbl">DIFF {c}</span> <span className="stat-val">{sign}{d.toFixed(2)}</span>
-                        </div>
-                      )
-                  }) : <div className="stat-line"><span className="stat-lbl">DIFF</span> <span className="stat-val">0.00</span></div>}
-               </div>
-           </div>
-        </div>
-      );
-  };
-
   const unionCurrencies = CURRENCIES.filter(c => stdRes.totals[c] > 0 || reqRes.totals[c] > 0);
-
-  /** Single merged table so each row index shares one tr — left/right cells stay horizontally aligned. */
-  const renderComparisonTable = () => {
-    const stdRows = stdRes.rows;
-    const reqRows = reqRes.rows;
-    const n = Math.max(stdRows.length, reqRows.length);
-    const currenciesStd = CURRENCIES.filter(c => stdRes.totals[c] > 0);
-    const currenciesReq = CURRENCIES.filter(c => reqRes.totals[c] > 0);
-
-    const renderExpanded = (r: any, key: string) => {
-      if (!r?.candidates?.length || !expandedRows[key]) return null;
-      return (
-        <div className="expanded-details">
-          <div className="expanded-header">Calculation Details</div>
-          {r.candidates.map((c: any, cIdx: number) => (
-            <div key={cIdx} className={`candidate-item ${c.is_winner ? 'winner' : ''}`}>
-              <div className="candidate-desc">
-                <strong>{c.cond !== 'NONE' ? `[${c.cond}] ` : ''}</strong>
-                {c.desc}
-                {c.is_winner && <span className="winner-badge">Applied</span>}
-              </div>
-              <div className="candidate-calc">{c.calc_string}</div>
-            </div>
-          ))}
-        </div>
-      );
-    };
-
-    return (
-      <div className="report-card report-card-comparison" id="report-comparison-merged">
-        <div className="table-wrapper table-wrapper-comparison">
-          <table className="xl-table xl-table-comparison">
-            <thead>
-              <tr>
-                <th className="xl-header comparison-panel-title comparison-panel-standard" colSpan={4}>{stdData.title.toUpperCase()}</th>
-                <th className="xl-header comparison-panel-title comparison-divider comparison-panel-requested" colSpan={4}>{reqData.title.toUpperCase()}</th>
-              </tr>
-              <tr>
-                <th className="xl-header col-item">Item</th>
-                <th className="xl-header col-desc">Description</th>
-                <th className="xl-header col-curr">Cur</th>
-                <th className="xl-header col-amt">Amount</th>
-                <th className="xl-header col-item comparison-divider comparison-subheader-requested">Item</th>
-                <th className="xl-header col-desc comparison-subheader-requested">Description</th>
-                <th className="xl-header col-curr comparison-subheader-requested">Cur</th>
-                <th className="xl-header col-amt comparison-subheader-requested">Amount</th>
-              </tr>
-            </thead>
-            <tbody>
-              {n === 0 && (
-                <tr>
-                  <td colSpan={8}>
-                    <div className="empty-state">
-                      <strong>No charge lines yet</strong>
-                      <p>Add items above or load a preset to see totals and differences here.</p>
-                    </div>
-                  </td>
-                </tr>
-              )}
-              {Array.from({ length: n }, (_, i) => {
-                const l = stdRows[i];
-                const rrow = reqRows[i];
-                const lPad = !l || l.is_pad;
-                const rPad = !rrow || rrow.is_pad;
-                const lKey = `cmp-L-${i}`;
-                const rKey = `cmp-R-${i}`;
-                const lHas = !!(l && !l.is_pad && l.candidates?.length);
-                const rHas = !!(rrow && !rrow.is_pad && rrow.candidates?.length);
-
-                return (
-                  <React.Fragment key={i}>
-                    <tr
-                      className={`xl-row comparison-pair-row ${i % 2 === 1 ? 'comparison-row-alt' : ''} ${lHas || rHas ? 'expandable' : ''}`}
-                    >
-                      {lPad ? (
-                        <>
-                          <td className="col-item comparison-cell-pad" colSpan={4}>&nbsp;</td>
-                        </>
-                      ) : (
-                        <>
-                          <td
-                            className="col-item"
-                            onClick={() => lHas && toggleRow(lKey)}
-                          >
-                            {l!.item}
-                          </td>
-                          <td
-                            className="col-desc"
-                            onClick={() => lHas && toggleRow(lKey)}
-                          >
-                            {renderDescLines(l!.desc)}
-                            {l!.subtext && (
-                              <span className="calc-subtext">
-                                <span className="min-highlight">{l!.subtext}</span>
-                              </span>
-                            )}
-                          </td>
-                          <td className="col-curr" onClick={() => lHas && toggleRow(lKey)}>
-                            {l!.curr}
-                          </td>
-                          <td className="col-amt" onClick={() => lHas && toggleRow(lKey)}>
-                            {l!.amount.toFixed(2)}
-                          </td>
-                        </>
-                      )}
-                      {rPad ? (
-                        <td className="col-item comparison-cell-pad comparison-divider" colSpan={4}>
-                          &nbsp;
-                        </td>
-                      ) : (
-                        <>
-                          <td
-                            className="col-item comparison-divider"
-                            onClick={() => rHas && toggleRow(rKey)}
-                          >
-                            {rrow!.item}
-                          </td>
-                          <td
-                            className="col-desc"
-                            onClick={() => rHas && toggleRow(rKey)}
-                          >
-                            {renderDescLines(rrow!.desc)}
-                            {rrow!.subtext && (
-                              <span className="calc-subtext">
-                                <span className="min-highlight">{rrow!.subtext}</span>
-                              </span>
-                            )}
-                          </td>
-                          <td className="col-curr" onClick={() => rHas && toggleRow(rKey)}>
-                            {rrow!.curr}
-                          </td>
-                          <td className="col-amt" onClick={() => rHas && toggleRow(rKey)}>
-                            {rrow!.amount.toFixed(2)}
-                          </td>
-                        </>
-                      )}
-                    </tr>
-                    {(expandedRows[lKey] || expandedRows[rKey]) && (
-                      <tr className="xl-row expanded-details-row comparison-expanded-row">
-                        <td colSpan={4} className="td-cell-flush">
-                          {renderExpanded(l, lKey)}
-                        </td>
-                        <td colSpan={4} className="comparison-divider td-cell-flush">
-                          {renderExpanded(rrow, rKey)}
-                        </td>
-                      </tr>
-                    )}
-                  </React.Fragment>
-                );
-              })}
-              <tr className="comparison-footer-row">
-                <td colSpan={4} className="comparison-footer-cell">
-                  <div className="footer-section totals">
-                    {currenciesStd.length > 0 ? (
-                      currenciesStd.map(c => (
-                        <div key={c} className="stat-line">
-                          <span className="stat-lbl">TOTAL {c}</span>{' '}
-                          <span className="stat-val">{stdRes.totals[c]?.toFixed(2) || '0.00'}</span>
-                        </div>
-                      ))
-                    ) : (
-                      <div className="stat-line">
-                        <span className="stat-lbl">TOTAL</span> <span className="stat-val">0.00</span>
-                      </div>
-                    )}
-                  </div>
-                </td>
-                <td colSpan={4} className="comparison-footer-cell comparison-divider comparison-footer-requested">
-                  <div className="footer-section totals">
-                    {currenciesReq.length > 0 ? (
-                      currenciesReq.map(c => (
-                        <div key={c} className="stat-line">
-                          <span className="stat-lbl">TOTAL {c}</span>{' '}
-                          <span className="stat-val">{reqRes.totals[c]?.toFixed(2) || '0.00'}</span>
-                        </div>
-                      ))
-                    ) : (
-                      <div className="stat-line">
-                        <span className="stat-lbl">TOTAL</span> <span className="stat-val">0.00</span>
-                      </div>
-                    )}
-                  </div>
-                  <div className="footer-section diffs">
-                    {unionCurrencies.length > 0 ? (
-                      unionCurrencies.map(c => {
-                        const d = (reqRes.totals[c] || 0) - (stdRes.totals[c] || 0);
-                        const sign = d >= 0 ? '+' : '';
-                        return (
-                          <div key={c} className="stat-line">
-                            <span className="stat-lbl">DIFF {c}</span>{' '}
-                            <span className="stat-val">
-                              {sign}
-                              {d.toFixed(2)}
-                            </span>
-                          </div>
-                        );
-                      })
-                    ) : (
-                      <div className="stat-line">
-                        <span className="stat-lbl">DIFF</span> <span className="stat-val">0.00</span>
-                      </div>
-                    )}
-                  </div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    );
-  };
 
   return (
     <DragDropContext onDragEnd={onDragEnd}>
-      <div id="toast-container">{toast && <div className="toast">{toast}</div>}</div>
+      <div id="toast-container">
+        {toast && <div className={`toast toast--${toast.type}`} role="status">{toast.message}</div>}
+      </div>
       
       <div className="app-wrapper">
         <div className="main-content">
@@ -981,7 +560,18 @@ export default function App() {
                 {lastScanFeedback?.target === 'std' && (
                    <div className="scan-feedback" role="status">{lastScanFeedback.count === 1 ? 'Added 1 charge group from image.' : `Added ${lastScanFeedback.count} charge groups from image.`}</div>
                 )}
-                {renderEditor('std')}
+                <EditorPanel
+                  prefix="std"
+                  data={stdData}
+                  lastScanFeedback={lastScanFeedback}
+                  onUpdateTitle={(title) => setStdData({ ...stdData, title })}
+                  onAddGroup={addGroup}
+                  onUpdateGroup={(idx, f, v) => handleUpdateGroup('std', idx, f, v)}
+                  onRemoveGroup={(idx) => removeGroup('std', idx)}
+                  onUpdateRow={(gi, ri, f, v) => handleUpdateRow('std', gi, ri, f, v)}
+                  onRemoveRow={(gi, ri) => removeRow('std', gi, ri)}
+                  onAddRow={(gi) => addRow('std', gi)}
+                />
              </div>
            )}
 
@@ -1000,7 +590,18 @@ export default function App() {
                 {lastScanFeedback?.target === 'req' && (
                    <div className="scan-feedback" role="status">{lastScanFeedback.count === 1 ? 'Added 1 charge group from image.' : `Added ${lastScanFeedback.count} charge groups from image.`}</div>
                 )}
-                {renderEditor('req')}
+                <EditorPanel
+                  prefix="req"
+                  data={reqData}
+                  lastScanFeedback={lastScanFeedback}
+                  onUpdateTitle={(title) => setReqData({ ...reqData, title })}
+                  onAddGroup={addGroup}
+                  onUpdateGroup={(idx, f, v) => handleUpdateGroup('req', idx, f, v)}
+                  onRemoveGroup={(idx) => removeGroup('req', idx)}
+                  onUpdateRow={(gi, ri, f, v) => handleUpdateRow('req', gi, ri, f, v)}
+                  onRemoveRow={(gi, ri) => removeRow('req', gi, ri)}
+                  onAddRow={(gi) => addRow('req', gi)}
+                />
              </div>
            )}
 
@@ -1032,7 +633,18 @@ export default function App() {
                    <div className="scan-feedback scan-feedback--mb" role="status">{lastScanFeedback.count === 1 ? 'Added 1 charge group from image.' : `Added ${lastScanFeedback.count} charge groups from image.`}</div>
                  )}
                  <hr className="rule-hr" />
-                 {renderEditor('mgr')}
+                 <EditorPanel
+                   prefix="mgr"
+                   data={mgrData}
+                   lastScanFeedback={lastScanFeedback}
+                   onUpdateTitle={(title) => setMgrData({ ...mgrData, title })}
+                   onAddGroup={addGroup}
+                   onUpdateGroup={(idx, f, v) => handleUpdateGroup('mgr', idx, f, v)}
+                   onRemoveGroup={(idx) => removeGroup('mgr', idx)}
+                   onUpdateRow={(gi, ri, f, v) => handleUpdateRow('mgr', gi, ri, f, v)}
+                   onRemoveRow={(gi, ri) => removeRow('mgr', gi, ri)}
+                   onAddRow={(gi) => addRow('mgr', gi)}
+                 />
 
                  <div className="adv-block">
                     <button type="button" className="adv-disclosure" aria-expanded={advOpen} onClick={() => setAdvOpen(!advOpen)}>
@@ -1104,86 +716,58 @@ export default function App() {
            
            <div id="full-report-area" className={`xl-wrapper full-report-surface ${viewMode === 'Comparison' ? 'xl-wrapper-comparison' : 'report-single'}`}>
               <div className="xl-info-box"><strong>SHIPMENT DETAILS:</strong>&nbsp;&nbsp; CBM: {globals.cbm.toFixed(3)} &nbsp;|&nbsp; KGS: {globals.kgs.toFixed(3)} &nbsp;|&nbsp; PKGS: {globals.pkgs}</div>
-              {viewMode === 'Comparison' && renderComparisonTable()}
-              {viewMode === 'Standard' && renderReportTable(stdRes, stdData.title, false)}
-              {viewMode === 'Requested' && renderReportTable(reqRes, reqData.title, false, undefined, undefined, [], 'requested')}
+              {viewMode === 'Comparison' && (
+                <ComparisonTable
+                  stdRes={stdRes}
+                  reqRes={reqRes}
+                  stdTitle={stdData.title}
+                  reqTitle={reqData.title}
+                  unionCurrencies={unionCurrencies}
+                  expandedRows={expandedRows}
+                  onToggleRow={toggleRow}
+                />
+              )}
+              {viewMode === 'Standard' && (
+                <ReportTable
+                  res={stdRes}
+                  title={stdData.title}
+                  showDiff={false}
+                  expandedRows={expandedRows}
+                  onToggleRow={toggleRow}
+                />
+              )}
+              {viewMode === 'Requested' && (
+                <ReportTable
+                  res={reqRes}
+                  title={reqData.title}
+                  showDiff={false}
+                  activeCurrencies={[]}
+                  reportVariant="requested"
+                  expandedRows={expandedRows}
+                  onToggleRow={toggleRow}
+                />
+              )}
            </div>
 
         </div>
 
-        {/* SIDEBAR */}
-        <div className={`history-sidebar ${sidebarCollapsed ? 'collapsed' : ''}`} id="sidebar">
-            <div className="sidebar-head">
-                <h4>History</h4>
-                <div className="sidebar-head-actions">
-                   <button type="button" className="btn-secondary btn-icon-sidebar" onClick={() => setSidebarCollapsed(!sidebarCollapsed)}><X size={14} /></button>
-                </div>
-            </div>
-
-            {/* HISTORY VIEW TABS */}
-            <div className="sidebar-tabs">
-                <div 
-                    className={`sidebar-tab ${historyView === 'saved' ? 'active' : ''}`} 
-                    onClick={() => setHistoryView('saved')}
-                >
-                    Saved ({history.length})
-                </div>
-                {importedHistory.length > 0 && (
-                    <div 
-                        className={`sidebar-tab ${historyView === 'imported' ? 'active' : ''}`} 
-                        onClick={() => setHistoryView('imported')}
-                    >
-                        Imported ({importedHistory.length})
-                    </div>
-                )}
-            </div>
-
-            <div className="history-toolbar">
-                   <button type="button" className="btn-info" onClick={exportCurrentHistory} title={`Export ${historyView}`}><Download size={12} /> Export</button>
-                   <button type="button" className="btn-dark" onClick={() => document.getElementById('hist-import')?.click()} title="Import (Temp View)"><Upload size={12} /> Import</button>
-                   <input id="hist-import" type="file" className="visually-hidden-file" accept=".json" onChange={handleHistoryImport} />
-                   <button type="button" className="btn-secondary" onClick={clearCurrentHistory} title={`Clear ${historyView}`}><Trash2 size={12} /> Clear</button>
-            </div>
-
-            <input type="text" className="history-search" placeholder="Search Ref#..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
-            
-            <div id="history-list">
-                {activeHistoryList.filter(h => h.ref.toLowerCase().includes(searchTerm.toLowerCase())).length === 0 && (
-                <div className="empty-state empty-state--padded">
-                  {historyView === 'saved' ? (
-                    <>
-                      <strong>No snapshots yet</strong>
-                      <p>Compare standard vs requested charges, then click <strong>Snap</strong> to save a snapshot here for quick recall.</p>
-                    </>
-                  ) : (
-                    <>
-                      <strong>No imported file loaded</strong>
-                      <p>Use <strong>Import</strong> to load a history JSON from another device. It appears here temporarily and won't replace your saved history.</p>
-                    </>
-                  )}
-                </div>
-              )}
-                {activeHistoryList.filter(h => h.ref.toLowerCase().includes(searchTerm.toLowerCase())).map(h => {
-                    return (
-                        <div key={h.id} className="history-card" onClick={() => loadHist(h)}>
-                            <button className="btn-hist-del" onClick={(e) => { e.stopPropagation(); deleteHistoryItem(h.id); }}><X size={14} /></button>
-                            <span className="history-ref">{h.ref}</span>
-                            <div className="history-meta">{h.timestamp} | {h.cbm}m³ | {h.kgs}kg | {h.pkgs}pkgs</div>
-                            <div className="history-res">
-                                {Object.entries(h.summary).map(([curr, val]) => (
-                                    <div key={curr} className="history-diff-line">
-                                        <span>{curr} {val.std.toFixed(2)}</span>
-                                        <span className={`history-diff-line__delta ${val.diff >= 0 ? 'history-diff-line__delta--pos' : 'history-diff-line__delta--neg'}`}>
-                                            {val.diff >= 0 ? '+' : ''}{val.diff.toFixed(2)}
-                                        </span>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    );
-                })}
-            </div>
-        </div>
+        <HistorySidebar
+          sidebarCollapsed={sidebarCollapsed}
+          setSidebarCollapsed={setSidebarCollapsed}
+          historyView={historyView}
+          setHistoryView={setHistoryView}
+          history={history}
+          importedHistory={importedHistory}
+          searchTerm={searchTerm}
+          setSearchTerm={setSearchTerm}
+          activeHistoryList={activeHistoryList}
+          onExportCurrentHistory={exportCurrentHistory}
+          onImportClick={() => document.getElementById('hist-import')?.click()}
+          onImportFileChange={handleHistoryImport}
+          onClearCurrentHistory={clearCurrentHistory}
+          onLoadHistory={loadHist}
+          onDeleteHistoryItem={deleteHistoryItem}
+        />
       </div>
     </DragDropContext>
   );

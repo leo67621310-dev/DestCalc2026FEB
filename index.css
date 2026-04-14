@@ -1108,7 +1108,11 @@ button:active { transform: scale(0.96); box-shadow: var(--shadow); }
 
 /* --- TOAST NOTIFICATIONS --- */
 #toast-container { position: fixed; top: 24px; right: 24px; z-index: 1000; }
-.toast { background: var(--primary); color: white; padding: 12px 24px; margin-bottom: 12px; border-radius: 8px; font-size: 14px; font-weight: 500; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); animation: slideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1); display: flex; align-items: center; gap: 12px; }
+.toast { background: var(--primary); color: white; padding: 12px 24px; margin-bottom: 12px; border-radius: 8px; font-size: 14px; font-weight: 500; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); animation: slideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1); display: flex; align-items: center; gap: 12px; max-width: min(520px, calc(100vw - 48px)); line-height: 1.4; }
+.toast--info { background: var(--primary); }
+.toast--success { background: var(--success); }
+.toast--warning { background: var(--warning); color: #1f2937; }
+.toast--error { background: var(--danger); }
 @keyframes slideIn { 
   from { transform: translateX(100%); opacity: 0; } 
   to { transform: translateX(0); opacity: 1; } 
