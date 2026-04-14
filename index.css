@@ -550,14 +550,16 @@ button:active { transform: scale(0.96); box-shadow: var(--shadow); }
   background: #F9FAFB; padding: 12px 16px; border-bottom: 1px solid var(--border);
   display: flex; gap: 12px; align-items: center; justify-content: space-between;
 }
-.cg-title-input { font-weight: 600; color: var(--primary); border: 1px solid transparent; background: transparent; font-size: 14px; width: 200px; box-shadow: none; }
+.cg-title-input { font-weight: 600; color: var(--primary); border: 1px solid transparent; background: transparent; font-size: 14px; width: 100%; min-width: 280px; max-width: 680px; box-shadow: none; }
 .cg-title-input:focus { border-color: var(--border); background: white; box-shadow: var(--shadow); }
-.cg-controls { display: flex; gap: 8px; align-items: center; }
+.cg-controls { display: flex; gap: 8px; align-items: center; flex-shrink: 0; }
 
 .cg-header__title-row {
   display: flex;
   align-items: center;
   gap: var(--space-2);
+  flex: 1;
+  min-width: 0;
 }
 .multiplier-value-input {
   width: 50px;
