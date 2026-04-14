@@ -547,6 +547,22 @@ export default function App() {
     setExpandedRows(prev => ({ ...prev, [id]: !prev[id] }));
   };
 
+  const renderDescLines = (desc?: string) => {
+    if (!desc) return null;
+    const parts = String(desc)
+      .split('|')
+      .map((p) => p.trim())
+      .filter(Boolean);
+    if (parts.length <= 1) return <>{desc}</>;
+    return (
+      <>
+        {parts.map((part, idx) => (
+          <span key={`${part}-${idx}`} className="desc-line">{part}</span>
+        ))}
+      </>
+    );
+  };
+
   const renderReportTable = (
     res: any,
     title: string,
@@ -607,7 +623,7 @@ export default function App() {
                             {r.item}
                         </td>
                         <td className="col-desc">
-                            {r.desc}
+                            {renderDescLines(r.desc)}
                             {r.subtext && <span className="calc-subtext"><span className="min-highlight">{r.subtext}</span></span>}
                         </td>
                         <td className="col-curr">{r.curr}</td>
@@ -759,7 +775,7 @@ export default function App() {
                             className="col-desc"
                             onClick={() => lHas && toggleRow(lKey)}
                           >
-                            {l!.desc}
+                            {renderDescLines(l!.desc)}
                             {l!.subtext && (
                               <span className="calc-subtext">
                                 <span className="min-highlight">{l!.subtext}</span>
@@ -790,7 +806,7 @@ export default function App() {
                             className="col-desc"
                             onClick={() => rHas && toggleRow(rKey)}
                           >
-                            {rrow!.desc}
+                            {renderDescLines(rrow!.desc)}
                             {rrow!.subtext && (
                               <span className="calc-subtext">
                                 <span className="min-highlight">{rrow!.subtext}</span>

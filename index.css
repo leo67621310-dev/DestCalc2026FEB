@@ -730,7 +730,7 @@ button:active { transform: scale(0.96); box-shadow: var(--shadow); }
 .xl-table:not(.xl-table-comparison) thead tr,
 .xl-table:not(.xl-table-comparison) tbody tr.xl-row {
   display: grid;
-  grid-template-columns: minmax(12ch, 16ch) minmax(0, 1fr) 5ch 10ch;
+  grid-template-columns: minmax(14ch, 18ch) minmax(0, 1fr) 5ch 10ch;
   width: 100%;
 }
 .xl-table:not(.xl-table-comparison) td[colspan="4"],
@@ -741,8 +741,10 @@ button:active { transform: scale(0.96); box-shadow: var(--shadow); }
 .xl-table .col-item {
   width: auto;
   min-width: 0;
-  word-break: normal;
-  overflow-wrap: break-word;
+  word-break: keep-all;
+  overflow-wrap: normal;
+  hyphens: none;
+  line-height: 1.4;
 }
 .xl-table .col-desc {
   width: auto;
@@ -834,6 +836,7 @@ button:active { transform: scale(0.96); box-shadow: var(--shadow); }
 }
 .min-highlight { font-weight: 600; color: var(--primary); font-size: 11px; }
 .calc-subtext { display: block; font-size: 11px; color: var(--secondary); margin-top: 4px; font-weight: 500; }
+.desc-line { display: block; margin: 0; }
 .xl-table .calc-subtext,
 .xl-table-comparison .calc-subtext {
   white-space: normal;
@@ -905,8 +908,8 @@ button:active { transform: scale(0.96); box-shadow: var(--shadow); }
 .xl-table-comparison tbody tr.comparison-pair-row {
   display: grid;
   grid-template-columns:
-    minmax(10ch, 14ch) minmax(0, 1fr) 5ch 10ch
-    minmax(10ch, 14ch) minmax(0, 1fr) 5ch 10ch;
+    minmax(12ch, 16ch) minmax(0, 1fr) 5ch 10ch
+    minmax(12ch, 16ch) minmax(0, 1fr) 5ch 10ch;
   width: 100%;
 }
 .xl-table-comparison tbody tr.comparison-pair-row td[colspan="4"] {
