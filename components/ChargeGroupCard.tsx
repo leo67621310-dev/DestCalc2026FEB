@@ -81,9 +81,11 @@ export const ChargeGroupCard: React.FC<Props> = ({
             >
               {group.rows.map((row, rIdx) => {
                   const isMin = row.condition === 'MIN';
+                  const isPercent = (row.unit || '').includes('%');
                   const mType = row.min_type || 'AMT';
                   const hasMinVal = (row.min_qty || 0) > 0;
-                  
+                  const rateIsZero = !(parseFloat(row.rate as any) > 0);
+
                   let minBoxClass = 'min-settings-box';
                   if(isMin) minBoxClass += ' active-min';
                   else if(hasMinVal) minBoxClass += ' has-value';
@@ -108,13 +110,14 @@ export const ChargeGroupCard: React.FC<Props> = ({
 
                           {/* RATE INPUT WITH DIVISOR + PER-ROW MULTIPLIER */}
                 <div className="rate-input-wrapper">
-                  {row.use_divisor ? (
+                  {row.use_divisor && !isPercent ? (
                     <>
                       <input 
                         type="number" 
-                        className="rate-main" 
+                        className={`rate-main${rateIsZero ? ' input-warning' : ''}`}
                         value={row.rate} 
                         placeholder="Rate" 
+                        title={rateIsZero ? 'Rate is 0 — this row will not appear in the report' : undefined}
                         onChange={(e) => onUpdateRow(groupIdx, rIdx, 'rate', e.target.value)} 
                       />
                       <span className="rate-divider">/</span>
@@ -138,23 +141,29 @@ export const ChargeGroupCard: React.FC<Props> = ({
                     <>
                       <input 
                         type="number" 
-                        className="rate-main" 
+                        className={`rate-main${rateIsZero ? ' input-warning' : ''}`}
                         value={row.rate} 
                         placeholder="0.00" 
+                        title={rateIsZero ? 'Rate is 0 — this row will not appear in the report' : undefined}
                         onChange={(e) => onUpdateRow(groupIdx, rIdx, 'rate', e.target.value)} 
                       />
-                      <button 
-                        className="btn-enable-div rate-chip" 
-                        onClick={() => onUpdateRow(groupIdx, rIdx, 'use_divisor', true)}
-                        title="Split the rate over N units, e.g. $80 per 1000 KG"
-                      >
-                        <Divide size={12} aria-hidden />
-                        <span className="btn-enable-div__label">per N</span>
-                      </button>
+                      {!isPercent && (
+                        <button
+                          className="btn-enable-div rate-chip"
+                          onClick={() => onUpdateRow(groupIdx, rIdx, 'use_divisor', true)}
+                          title="Split the rate over N units, e.g. $80 per 1000 KG"
+                        >
+                          <Divide size={12} aria-hidden />
+                          <span className="btn-enable-div__label">per N</span>
+                        </button>
+                      )}
                     </>
                   )}
 
-                  {row.multiplier_active ? (
+                  {/* Per-row × qty multiplier — not shown for percentages
+                      (silently ignored by the engine) or for MIN-condition rows
+                      (would amplify the floor, which is rarely intended). */}
+                  {!isPercent && !isMin && (row.multiplier_active ? (
                     <div className="rate-mult-box" title="Row multiplied by this value (e.g. days, shipments)">
                       <span className="rate-mult-box__sign">×</span>
                       <input
@@ -188,7 +197,7 @@ export const ChargeGroupCard: React.FC<Props> = ({
                       <Clock size={12} aria-hidden />
                       <span className="btn-enable-mult__label">× qty</span>
                     </button>
-                  )}
+                  ))}
                 </div>
 
                 <select 

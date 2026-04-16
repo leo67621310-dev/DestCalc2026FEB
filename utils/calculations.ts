@@ -18,9 +18,12 @@ export function calculateCharges(cbm: number, kgs: number, pkgs: number, groups:
     if (isNaN(divisor) || divisor === 0) divisor = 1;
 
     // Per-row multiplier (time/qty). Defaults to 1 when absent/invalid.
+    // Intentionally suppressed on MIN-condition rows: a MIN row is a floor, not a
+    // computed amount, so multiplying it by N produces a surprising amplified
+    // floor (e.g. MIN 60 × 3 = 180). The UI also hides the chip in this case.
     let rowMultiplier = 1;
     let rowMultiplierActive = false;
-    if (r.multiplier_active) {
+    if (r.multiplier_active && r.condition !== 'MIN') {
       const parsedMult = parseFloat(r.multiplier_value as any);
       if (!isNaN(parsedMult) && parsedMult > 0) {
         rowMultiplier = parsedMult;
@@ -55,11 +58,16 @@ export function calculateCharges(cbm: number, kgs: number, pkgs: number, groups:
     }
 
     // 2. Standard Unit Handling
+    // All weight/volume units enforce a 1-unit floor so a tiny shipment is
+    // billed for at least one billable unit (the standard tariff convention
+    // for destination charges). KGS now matches the same pattern as CBM,
+    // TON and RT to remove the silent disappearance of KGS-rate rows when
+    // the global KGS field is left at 0.
     let qty = 1;
     if (u === 'RT') qty = Math.max(1, rt);
     else if (u === 'CBM') qty = Math.max(1, cbm);
     else if (u === 'TON') qty = Math.max(1, tons);
-    else if (u === 'KGS') qty = kgs;
+    else if (u === 'KGS') qty = Math.max(1, kgs);
     else if (u === 'PKG') qty = pkgs;
     else if (u === 'BL' || u === 'SHPT' || u === 'FLAT') qty = 1;
     
@@ -245,6 +253,13 @@ export function calculateCharges(cbm: number, kgs: number, pkgs: number, groups:
     let final_desc = "";
     let subtext = "";
     let is_pct_total_group = (ctx.pct_total_rows.length > 0);
+    // Default breakdown comes from the local (non-% TOTAL) resolution.
+    // For % TOTAL groups it gets replaced with the full candidate set
+    // computed below so users can still expand the row to see how the
+    // value was derived (previously this was set to undefined which
+    // suppressed the per-line breakdown for any group containing a
+    // % TOTAL row — see calculations evaluation point 8).
+    let final_candidates: any[] | undefined = ctx.local_res.all_candidates;
 
     if (!is_pct_total_group) {
       final_val = ctx.local_res.val;
@@ -257,10 +272,11 @@ export function calculateCharges(cbm: number, kgs: number, pkgs: number, groups:
       let total_pct_candidates = ctx.pct_total_rows.map(r => calculateRow(r, ctx.g.currency, base_total));
       let all_candidates = [...ctx.std_candidates, ...ctx.item_pct_candidates, ...total_pct_candidates];
       let final_res = resolveCandidates(all_candidates, ctx.g.logic);
-      
+
       final_val = final_res.val;
       final_desc = final_res.desc;
       subtext = final_res.subtext;
+      final_candidates = final_res.all_candidates;
     }
 
     if (final_val > 0) {
@@ -272,7 +288,7 @@ export function calculateCharges(cbm: number, kgs: number, pkgs: number, groups:
         originalIndex: ctx.idx,
         isPctTotal: is_pct_total_group,
         subtext: subtext,
-        candidates: is_pct_total_group ? undefined : ctx.local_res.all_candidates
+        candidates: final_candidates
       });
     }
   });

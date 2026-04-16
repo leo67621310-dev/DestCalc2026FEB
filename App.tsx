@@ -367,6 +367,14 @@ export default function App() {
   const stdRes = calculateCharges(globals.cbm, globals.kgs, globals.pkgs, stdData.groups);
   const reqRes = calculateCharges(globals.cbm, globals.kgs, globals.pkgs, reqData.groups);
 
+  // Heavy/Light conditions decide the pier-charge bracket from package
+  // average weight. With pkgs = 0 the avg is 0 → LIGHT always wins
+  // silently. Highlight the input so the user notices the missing value.
+  const usesPkgCondition = (data: ChargeData) =>
+    data.groups.some(g => g.rows.some(r => r.condition === 'HEAVY' || r.condition === 'LIGHT'));
+  const pkgsWarning =
+    !(globals.pkgs > 0) && (usesPkgCondition(stdData) || usesPkgCondition(reqData));
+
   const saveToHistory = () => {
     const summary: any = {};
     CURRENCIES.forEach(c => { 
@@ -625,9 +633,21 @@ export default function App() {
                       <label>KGS</label>
                       <input type="number" value={globals.kgs} onChange={e => setGlobals({...globals, kgs: parseFloat(e.target.value)})} step="0.001" />
                   </div>
-                  <div className="input-group narrow">
+                  <div className={`input-group narrow${pkgsWarning ? ' input-group--warning' : ''}`}>
                       <label>PKGS</label>
-                      <input type="number" value={globals.pkgs} onChange={e => setGlobals({...globals, pkgs: parseFloat(e.target.value)})} step="1" />
+                      <input
+                        type="number"
+                        className={pkgsWarning ? 'input-warning' : ''}
+                        value={globals.pkgs}
+                        onChange={e => setGlobals({...globals, pkgs: parseFloat(e.target.value)})}
+                        step="1"
+                        title={pkgsWarning ? 'A row uses Heavy/Light condition but PKGS is 0 — every row will fall into LIGHT.' : undefined}
+                      />
+                      {pkgsWarning && (
+                        <span className="input-warning-hint" role="alert">
+                          Required by a Heavy/Light row
+                        </span>
+                      )}
                   </div>
                   <div className="input-group global-inputs__snap">
                       <button className="btn-primary" onClick={saveToHistory} title="Save this comparison to history">
