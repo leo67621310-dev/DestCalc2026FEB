@@ -81,9 +81,25 @@ export default async function handler(req: any, res: any) {
                          - 'HEAVY': >20kg/pkg. 'LIGHT': <20kg/pkg. 
                          - 'OVER_5X': Ratio > 5:1. Usually paired with RT/CBM/TON units.
                          - 'MIN': Minimum charge.
-                      4. UNITS:
-                         - Normalize to: FLAT, SHPT, RT, CBM, TON, KGS, PKG, BL, % ITEM, % TOTAL.
-                         - Note: 'KGS' is allowed (for Per 100 KGS etc).
+                      4. UNITS — STRICT WHITELIST:
+                         - You MUST only output one of these exact strings for the 'unit' field:
+                           FLAT, SHPT, RT, CBM, TON, KGS, PKG, BL, % ITEM, % TOTAL.
+                         - Normalize all synonyms to this set. Never emit anything else.
+                         - Synonym map (case-insensitive on the source):
+                             BILL, B/L, BOL, HBL, MBL, HOUSE BL, MASTER BL, DOC  → BL
+                             MT, M/T, METRIC TON, TONNE, TONNES, TONS            → TON
+                             M3, M³, CBM, CBM.                                   → CBM
+                             KG, KGS., PER KG, PER 100 KG, PER 100 KGS           → KGS
+                             PLT, PALLET, PALLETS, CTN, CARTON, CARTONS,
+                             BOX, BOXES, PKG, PKGS, PACKAGE, PACKAGES, PCS,
+                             PIECE, PIECES, UNIT, UNITS                         → PKG
+                             SHIPMENT, SHPT., PER SHIPMENT, JOB                 → SHPT
+                             LS, LUMP SUM, FIXED, FLAT FEE                      → FLAT
+                             RT, R/T, REVENUE TON, W/M, WM                      → RT
+                             % GROUP, % OF ITEM, % OF CHARGE, ITEM %            → % ITEM
+                             % OF TOTAL, VAT, % INVOICE, TOTAL %                → % TOTAL
+                         - If a source unit doesn't match any synonym, choose the closest from the
+                           whitelist (prefer FLAT for ambiguous fixed fees). NEVER invent a unit.
                       5. DIVISOR:
                          - If a rate is "Per X Units" (e.g. 30 per 333 KGS), set 'divisor' to X (333). Default is 1.
                       6. PERCENTAGE CHARGES:
