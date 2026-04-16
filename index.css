@@ -1151,30 +1151,29 @@ button:active { transform: scale(0.96); box-shadow: var(--shadow); }
 .xl-table-comparison tbody tr.comparison-pair-row td[colspan="4"] {
   grid-column: span 4;
 }
-.xl-table-comparison thead tr:nth-child(2) th:nth-child(1),
-.xl-table-comparison thead tr:nth-child(2) th:nth-child(5),
-.xl-table-comparison tbody tr.comparison-pair-row td:nth-child(1),
-.xl-table-comparison tbody tr.comparison-pair-row td:nth-child(5) {
+/* Alignment is keyed to column classes, not nth-child, because when one side
+   is a padded <td colspan="4"> the real cells on the other side shift their
+   sibling index and would otherwise receive the wrong column's styling
+   (e.g. description rendering right-aligned nowrap like the currency cell). */
+.xl-table-comparison thead tr:nth-child(2) th.col-item,
+.xl-table-comparison tbody tr.comparison-pair-row td.col-item {
   width: auto;
   min-width: 0;
   word-break: normal;
   overflow-wrap: break-word;
 }
-.xl-table-comparison thead tr:nth-child(2) th:nth-child(2),
-.xl-table-comparison thead tr:nth-child(2) th:nth-child(6),
-.xl-table-comparison tbody tr.comparison-pair-row td:nth-child(2),
-.xl-table-comparison tbody tr.comparison-pair-row td:nth-child(6) {
+.xl-table-comparison thead tr:nth-child(2) th.col-desc,
+.xl-table-comparison tbody tr.comparison-pair-row td.col-desc {
   width: auto;
   min-width: 0;
   white-space: normal;
   word-break: keep-all;
   overflow-wrap: break-word;
   line-height: 1.45;
+  text-align: left;
 }
-.xl-table-comparison thead tr:nth-child(2) th:nth-child(3),
-.xl-table-comparison thead tr:nth-child(2) th:nth-child(7),
-.xl-table-comparison tbody tr.comparison-pair-row td:nth-child(3),
-.xl-table-comparison tbody tr.comparison-pair-row td:nth-child(7) {
+.xl-table-comparison thead tr:nth-child(2) th.col-curr,
+.xl-table-comparison tbody tr.comparison-pair-row td.col-curr {
   width: auto;
   min-width: 0;
   max-width: none;
@@ -1183,10 +1182,8 @@ button:active { transform: scale(0.96); box-shadow: var(--shadow); }
   padding-right: 2px;
   text-align: right;
 }
-.xl-table-comparison thead tr:nth-child(2) th:nth-child(4),
-.xl-table-comparison thead tr:nth-child(2) th:nth-child(8),
-.xl-table-comparison tbody tr.comparison-pair-row td:nth-child(4),
-.xl-table-comparison tbody tr.comparison-pair-row td:nth-child(8) {
+.xl-table-comparison thead tr:nth-child(2) th.col-amt,
+.xl-table-comparison tbody tr.comparison-pair-row td.col-amt {
   width: auto;
   min-width: 0;
   white-space: nowrap;
@@ -1219,7 +1216,8 @@ button:active { transform: scale(0.96); box-shadow: var(--shadow); }
 .xl-table-comparison .comparison-divider {
   border-left: 2px solid var(--accent-requested-border);
 }
-.xl-table-comparison tbody tr.comparison-pair-row td:nth-child(n + 5) .min-highlight {
+.xl-table-comparison tbody tr.comparison-pair-row td.comparison-divider ~ td .min-highlight,
+.xl-table-comparison tbody tr.comparison-pair-row td.comparison-divider .min-highlight {
   color: var(--accent-requested-muted);
 }
 .xl-table-comparison td,
