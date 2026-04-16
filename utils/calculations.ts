@@ -17,6 +17,17 @@ export function calculateCharges(cbm: number, kgs: number, pkgs: number, groups:
     let divisor = parseFloat(r.divisor as any);
     if (isNaN(divisor) || divisor === 0) divisor = 1;
 
+    // Per-row multiplier (time/qty). Defaults to 1 when absent/invalid.
+    let rowMultiplier = 1;
+    let rowMultiplierActive = false;
+    if (r.multiplier_active) {
+      const parsedMult = parseFloat(r.multiplier_value as any);
+      if (!isNaN(parsedMult) && parsedMult > 0) {
+        rowMultiplier = parsedMult;
+        rowMultiplierActive = rowMultiplier !== 1;
+      }
+    }
+
     // 1. Percentage Handling
     if (u.includes('%')) {
       let base = base_amt_for_pct || 0;
@@ -31,7 +42,15 @@ export function calculateCharges(cbm: number, kgs: number, pkgs: number, groups:
       if (appliedMin) desc += ` [Min: ${minVal}]`;
       
       let calc_string = `${rate}% of ${base.toFixed(2)} = ${amt.toFixed(2)}`;
-      
+
+      if (rowMultiplierActive) {
+        const preMultAmt = amt;
+        amt = amt * rowMultiplier;
+        desc += ` ×${rowMultiplier}`;
+        calc_string += ` × ${rowMultiplier} = ${amt.toFixed(2)}`;
+        void preMultAmt;
+      }
+
       return { amt, desc, met: true, is_min: false, cond: 'NONE', unit: u, is_pct: true, calc_string };
     }
 
@@ -141,11 +160,20 @@ export function calculateCharges(cbm: number, kgs: number, pkgs: number, groups:
       }
     }
 
+    if (rowMultiplierActive) {
+      amt = amt * rowMultiplier;
+      desc += ` ×${rowMultiplier}`;
+      calc_string += ` × ${rowMultiplier} = ${amt.toFixed(2)}`;
+    }
+
     return { amt, desc, met, is_min: r.condition === 'MIN', cond: r.condition, unit: u, is_pct: false, calc_string };
   }
 
   // --- HELPER: Resolve Candidates ---
-  function resolveCandidates(candidates: any[], logic: string, multiplier_active: boolean, multiplier_value: number) {
+  // Per-row multipliers are baked into each candidate's `amt` by calculateRow, so
+  // MAX/SUM logic operates on already-multiplied values and no group-level
+  // multiplier pass is needed here.
+  function resolveCandidates(candidates: any[], logic: string) {
     let active = candidates.filter(c => c.met);
     if (active.length === 0) return { val: 0, desc: '', subtext: '', winner: null, all_candidates: candidates };
     
@@ -173,11 +201,6 @@ export function calculateCharges(cbm: number, kgs: number, pkgs: number, groups:
       winner = active[0];
     }
 
-    if (multiplier_active && multiplier_value > 0) {
-      val *= multiplier_value;
-      if (val > 0) subtext += ` [x${multiplier_value}]`;
-    }
-    
     candidates.forEach(c => c.is_winner = (c === winner || logic === 'SUM'));
 
     return { val, desc: final_desc, subtext, winner, all_candidates: candidates };
@@ -189,15 +212,12 @@ export function calculateCharges(cbm: number, kgs: number, pkgs: number, groups:
     let pct_total_rows = g.rows.filter(r => r.unit.includes('TOTAL'));
 
     let std_candidates = std_rows.map(r => calculateRow(r, g.currency, 0));
-    let std_res = resolveCandidates(std_candidates, g.logic, false, 1);
+    let std_res = resolveCandidates(std_candidates, g.logic);
     let base_for_item_pct = std_res.val;
 
     let item_pct_candidates = pct_item_rows.map(r => calculateRow(r, g.currency, base_for_item_pct));
     let all_local_candidates = [...std_candidates, ...item_pct_candidates];
-    
-    // SAFE PARSING for Multiplier
-    let safeMultiplier = parseFloat(g.multiplier_value as any) || 0;
-    let local_res = resolveCandidates(all_local_candidates, g.logic, g.multiplier_active, safeMultiplier);
+    let local_res = resolveCandidates(all_local_candidates, g.logic);
     
     return {
       g,
@@ -206,8 +226,7 @@ export function calculateCharges(cbm: number, kgs: number, pkgs: number, groups:
       item_pct_candidates,
       pct_total_rows,
       pre_total_val: local_res.val,
-      local_res,
-      safeMultiplier
+      local_res
     };
   });
 
@@ -237,7 +256,7 @@ export function calculateCharges(cbm: number, kgs: number, pkgs: number, groups:
 
       let total_pct_candidates = ctx.pct_total_rows.map(r => calculateRow(r, ctx.g.currency, base_total));
       let all_candidates = [...ctx.std_candidates, ...ctx.item_pct_candidates, ...total_pct_candidates];
-      let final_res = resolveCandidates(all_candidates, ctx.g.logic, ctx.g.multiplier_active, ctx.safeMultiplier);
+      let final_res = resolveCandidates(all_candidates, ctx.g.logic);
       
       final_val = final_res.val;
       final_desc = final_res.desc;

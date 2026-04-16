@@ -9,6 +9,9 @@ export interface Row {
   min_qty: number;
   round_up?: boolean;
   round_up_decimals?: number;
+  /** Per-row time/qty multiplier. Multiplies this row's calculated amount by multiplier_value. */
+  multiplier_active?: boolean;
+  multiplier_value?: number;
 }
 
 export interface Group {
@@ -16,8 +19,10 @@ export interface Group {
   title: string;
   currency: string;
   logic: 'MAX' | 'SUM';
-  multiplier_active: boolean;
-  multiplier_value: number;
+  /** @deprecated Legacy group-level multiplier. Migrated into each row's multiplier_* on load. */
+  multiplier_active?: boolean;
+  /** @deprecated Legacy group-level multiplier value. Migrated into each row's multiplier_value on load. */
+  multiplier_value?: number;
   rows: Row[];
 }
 
@@ -78,11 +83,11 @@ export const UNITS = ['FLAT', 'SHPT', 'RT', 'CBM', 'TON', 'KGS', 'PKG', 'BL', '%
 
 export const CHARGE_TEMPLATES: Record<string, Group> = {
   "EMPTY": {
-    id: "", title: "NEW CHARGE", logic: "MAX", currency: "EUR", multiplier_active: false, multiplier_value: 1,
+    id: "", title: "NEW CHARGE", logic: "MAX", currency: "EUR",
     rows: [{ id: "", rate: 0, divisor: 1, use_divisor: false, unit: "FLAT", condition: "NONE", min_type: "AMT", min_qty: 0, round_up: false, round_up_decimals: 0 }]
   },
   "LCL CHARGES": {
-      id: "", title: "LCL CHARGES", logic: "MAX", currency: "EUR", multiplier_active: false, multiplier_value: 1,
+      id: "", title: "LCL CHARGES", logic: "MAX", currency: "EUR",
       rows: [
           { id: "", rate: 0, divisor: 1, use_divisor: false, unit: "CBM", condition: "NONE", min_type: "AMT", min_qty: 0, round_up: false, round_up_decimals: 0 },
           { id: "", rate: 0, divisor: 1, use_divisor: false, unit: "TON", condition: "NONE", min_type: "AMT", min_qty: 0, round_up: false, round_up_decimals: 0 },
@@ -90,7 +95,7 @@ export const CHARGE_TEMPLATES: Record<string, Group> = {
       ]
   },
   "PIER CHARGES": {
-      id: "", title: "PIER CHARGES", logic: "MAX", currency: "EUR", multiplier_active: false, multiplier_value: 1,
+      id: "", title: "PIER CHARGES", logic: "MAX", currency: "EUR",
       rows: [
           { id: "", rate: 0, divisor: 1, use_divisor: false, unit: "TON", condition: "HEAVY", min_type: "AMT", min_qty: 0, round_up: false, round_up_decimals: 0 },
           { id: "", rate: 0, divisor: 1, use_divisor: false, unit: "TON", condition: "LIGHT", min_type: "AMT", min_qty: 0, round_up: false, round_up_decimals: 0 },
@@ -99,13 +104,13 @@ export const CHARGE_TEMPLATES: Record<string, Group> = {
       ]
   },
   "STORAGE": {
-      id: "", title: "STORAGE", logic: "SUM", currency: "EUR", multiplier_active: true, multiplier_value: 3,
+      id: "", title: "STORAGE", logic: "SUM", currency: "EUR",
       rows: [
-          { id: "", rate: 0, divisor: 1, use_divisor: false, unit: "RT", condition: "NONE", min_type: "AMT", min_qty: 0, round_up: false, round_up_decimals: 0 }
+          { id: "", rate: 0, divisor: 1, use_divisor: false, unit: "RT", condition: "NONE", min_type: "AMT", min_qty: 0, round_up: false, round_up_decimals: 0, multiplier_active: true, multiplier_value: 3 }
       ]
   },
   "DELIVERY ORDER": {
-      id: "", title: "DELIVERY ORDER", logic: "SUM", currency: "EUR", multiplier_active: false, multiplier_value: 1,
+      id: "", title: "DELIVERY ORDER", logic: "SUM", currency: "EUR",
       rows: [
           { id: "", rate: 0, divisor: 1, use_divisor: false, unit: "BL", condition: "NONE", min_type: "AMT", min_qty: 0, round_up: false, round_up_decimals: 0 }
       ]

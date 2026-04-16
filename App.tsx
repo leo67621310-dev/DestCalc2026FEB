@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { AlertTriangle, History as HistoryIcon, Camera, Bot, Settings, ChevronUp, ChevronDown, Image as ImageIcon } from 'lucide-react';
+import { AlertTriangle, History as HistoryIcon, Camera, Bot, Settings, ChevronUp, ChevronDown, Image as ImageIcon, Zap, HelpCircle } from 'lucide-react';
 import { toJpeg } from 'html-to-image';
 import { DragDropContext, DropResult } from '@hello-pangea/dnd';
 import { ChargeData, Group, HistoryItem, CHARGE_TEMPLATES, CURRENCIES, DEFAULT_PRESETS, PresetsMap } from './types';
@@ -8,6 +8,7 @@ import { ensureIds, mapScannedGroups } from './utils/dataTransforms';
 import { ComparisonTable, ReportTable } from './components/ReportTables';
 import { EditorPanel } from './components/EditorPanel';
 import { HistorySidebar } from './components/HistorySidebar';
+import { HelpDrawer } from './components/HelpDrawer';
 
 const STORAGE_KEY = 'fcc_v5_modular_react';
 
@@ -15,7 +16,7 @@ const EMPTY_STRUCTURE: ChargeData = { groups: [], title: '' };
 
 export default function App() {
   type ToastType = 'info' | 'success' | 'warning' | 'error';
-  type ToastState = { message: string; type: ToastType } | null;
+  type ToastEntry = { id: number; message: string; type: ToastType };
 
   // --- STATE ---
   const [stdData, setStdData] = useState<ChargeData>({ title: "Standard Charges", groups: [] });
@@ -37,9 +38,13 @@ export default function App() {
   
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [advOpen, setAdvOpen] = useState(false);
+  const [modelPopoverOpen, setModelPopoverOpen] = useState(false);
+  const modelPopoverRef = useRef<HTMLDivElement | null>(null);
+  const [helpOpen, setHelpOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   
-  const [toast, setToast] = useState<ToastState>(null);
+  const [toasts, setToasts] = useState<ToastEntry[]>([]);
+  const toastIdRef = useRef(0);
   const [isScanning, setIsScanning] = useState(false);
   const [lastScanFeedback, setLastScanFeedback] = useState<{ count: number; target: 'std' | 'req' | 'mgr'; groupIds: string[] } | null>(null);
   const scanDelayTimerRef = useRef<number | null>(null);
@@ -92,10 +97,44 @@ export default function App() {
     return () => clearTimeout(t);
   }, [lastScanFeedback]);
 
+  // Close model popover on outside click or ESC
+  useEffect(() => {
+    if (!modelPopoverOpen) return;
+    const onDocClick = (e: MouseEvent) => {
+      if (!modelPopoverRef.current) return;
+      if (e.target instanceof Node && !modelPopoverRef.current.contains(e.target)) {
+        setModelPopoverOpen(false);
+      }
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setModelPopoverOpen(false);
+    };
+    document.addEventListener('mousedown', onDocClick);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('mousedown', onDocClick);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [modelPopoverOpen]);
+
+  const modelLabel =
+    model === 'gemini-3.1-pro-preview'
+      ? 'Gemini 3.1 Pro'
+      : model === 'gemini-3.1-flash-lite-preview'
+      ? 'Gemini 3.1 Flash Lite'
+      : model === 'gemini-3-flash-preview'
+      ? 'Gemini 3.0 Flash'
+      : 'Gemini 2.5 Flash';
+
   // --- HELPERS ---
+  const dismissToast = (id: number) => {
+    setToasts((prev) => prev.filter((t) => t.id !== id));
+  };
+
   const showToast = (message: string, type: ToastType = 'info', duration = 3000) => {
-    setToast({ message, type });
-    window.setTimeout(() => setToast(null), duration);
+    const id = ++toastIdRef.current;
+    setToasts((prev) => [...prev, { id, message, type }]);
+    window.setTimeout(() => dismissToast(id), duration);
   };
 
   const clearScanDelayTimer = () => {
@@ -476,8 +515,19 @@ export default function App() {
 
   return (
     <DragDropContext onDragEnd={onDragEnd}>
-      <div id="toast-container">
-        {toast && <div className={`toast toast--${toast.type}`} role="status">{toast.message}</div>}
+      <HelpDrawer open={helpOpen} onClose={() => setHelpOpen(false)} />
+      <div id="toast-container" aria-live="polite">
+        {toasts.map((t) => (
+          <div
+            key={t.id}
+            className={`toast toast--${t.type}`}
+            role="status"
+            onClick={() => dismissToast(t.id)}
+            title="Dismiss"
+          >
+            {t.message}
+          </div>
+        ))}
       </div>
       
       <div className="app-wrapper">
@@ -488,24 +538,74 @@ export default function App() {
                   <div>
                       <div className="dashboard-title-row">
                           <h3>Destination Charges Calculator</h3>
-                          <span className="model-badge">
-                              <Bot size={12} />
-                              {
-                                model === 'gemini-3.1-pro-preview'
-                                  ? 'Gemini 3.1 Pro'
-                                  : model === 'gemini-3.1-flash-lite-preview'
-                                  ? 'Gemini 3.1 Flash Lite'
-                                  : model === 'gemini-3-flash-preview'
-                                  ? 'Gemini 3.0 Flash'
-                                  : 'Gemini 2.5 Flash'
-                              }
-                          </span>
+                          <div className="model-badge-wrapper" ref={modelPopoverRef}>
+                              <button
+                                type="button"
+                                className={`model-badge model-badge--interactive${modelPopoverOpen ? ' is-open' : ''}`}
+                                onClick={() => setModelPopoverOpen((v) => !v)}
+                                aria-haspopup="dialog"
+                                aria-expanded={modelPopoverOpen}
+                                title="Change scan model and reasoning effort"
+                              >
+                                  <Bot size={12} />
+                                  {modelLabel}
+                                  <ChevronDown size={12} aria-hidden />
+                              </button>
+                              {modelPopoverOpen && (
+                                <div className="model-popover" role="dialog" aria-label="Scan model settings">
+                                  <div className="model-popover__section">
+                                    <label className="model-popover__label" htmlFor="model-popover-model">
+                                      <Bot size={12} aria-hidden /> Model
+                                    </label>
+                                    <select
+                                      id="model-popover-model"
+                                      value={model}
+                                      onChange={(e) => setModel(e.target.value)}
+                                      className="model-popover__select"
+                                    >
+                                      <option value="gemini-3.1-pro-preview">Gemini 3.1 Pro</option>
+                                      <option value="gemini-3.1-flash-lite-preview">Gemini 3.1 Flash Lite</option>
+                                      <option value="gemini-3-flash-preview">Gemini 3.0 Flash</option>
+                                      <option value="gemini-2.5-flash">Gemini 2.5 Flash</option>
+                                    </select>
+                                  </div>
+                                  <div className="model-popover__section">
+                                    <label className="model-popover__label" htmlFor="model-popover-reasoning">
+                                      <Zap size={12} aria-hidden /> Reasoning effort
+                                      {!model.includes('gemini-3') && <span className="model-popover__hint">Not available for 2.5</span>}
+                                    </label>
+                                    <select
+                                      id="model-popover-reasoning"
+                                      value={reasoning}
+                                      onChange={(e) => setReasoning(e.target.value)}
+                                      className={`model-popover__select${!model.includes('gemini-3') ? ' model-popover__select--disabled' : ''}`}
+                                      disabled={!model.includes('gemini-3')}
+                                    >
+                                      <option value="auto">Default (Auto)</option>
+                                      <option value="low">Low (Fast)</option>
+                                      <option value="high">High (Deep)</option>
+                                    </select>
+                                  </div>
+                                  <div className="model-popover__footer">Used for image scans. Mirrored in Advanced Options.</div>
+                                </div>
+                              )}
+                          </div>
+                          <button
+                            type="button"
+                            className="help-trigger"
+                            onClick={() => setHelpOpen(true)}
+                            aria-haspopup="dialog"
+                            aria-expanded={helpOpen}
+                            title="Open the help guide — units, conditions, formulas, examples"
+                          >
+                            <HelpCircle size={14} aria-hidden />
+                            <span>Help</span>
+                          </button>
                       </div>
                       <span className="dashboard-tagline">Compare standard vs requested charges and see what to collect from agent or consignee.</span>
                       <span className="dashboard-tagline--sub">Enter shipment details, load or add charges for Standard and Requested, then check the DIFF totals below.</span>
                   </div>
                   <div className="header-actions">
-                      <button className="btn-danger btn-compact-danger" onClick={() => { if(confirm('Reset all data? Your presets and history will be cleared. This can\'t be undone.')) { localStorage.removeItem(STORAGE_KEY); location.reload(); }}}><AlertTriangle size={14} /> Reset App</button>
                       <button className="btn-secondary" onClick={() => setSidebarCollapsed(!sidebarCollapsed)}>
                           <HistoryIcon size={16} /> History
                       </button>
@@ -691,6 +791,18 @@ export default function App() {
                                     }
                                 }} />
                             </div>
+                            <div className="adv-panel__danger">
+                                <div className="adv-panel__danger-text">
+                                    <strong>Danger zone</strong>
+                                    <span>Clears all presets, history, and saved charges from this device.</span>
+                                </div>
+                                <button
+                                    className="btn-danger btn-compact-danger"
+                                    onClick={() => { if (confirm("Reset all data? Your presets and history will be cleared. This can't be undone.")) { localStorage.removeItem(STORAGE_KEY); location.reload(); } }}
+                                >
+                                    <AlertTriangle size={14} /> Reset App
+                                </button>
+                            </div>
                         </div>
                     )}
                  </div>
@@ -700,12 +812,25 @@ export default function App() {
            {/* OUTPUT */}
            <div className="output-controls">
                 <div className="output-controls-row">
-                    <label className="output-controls-label" htmlFor="report-view-select">Report view</label>
-                    <select id="report-view-select" value={viewMode} onChange={(e) => setViewMode(e.target.value)} className="output-controls-select">
-                        <option value="Comparison">Side-by-side (standard vs requested)</option>
-                        <option value="Standard">Standard only</option>
-                        <option value="Requested">Requested only</option>
-                    </select>
+                    <span className="output-controls-label" id="report-view-label">Report view</span>
+                    <div className="segmented" role="radiogroup" aria-labelledby="report-view-label">
+                        {[
+                            { value: 'Comparison', label: 'Side-by-side' },
+                            { value: 'Standard', label: 'Standard only' },
+                            { value: 'Requested', label: 'Requested only' },
+                        ].map(opt => (
+                            <button
+                                key={opt.value}
+                                type="button"
+                                role="radio"
+                                aria-checked={viewMode === opt.value}
+                                className={`segmented__option${viewMode === opt.value ? ' is-active' : ''}${opt.value === 'Requested' ? ' segmented__option--requested' : ''}`}
+                                onClick={() => setViewMode(opt.value)}
+                            >
+                                {opt.label}
+                            </button>
+                        ))}
+                    </div>
                 </div>
                 <div className="output-controls-row">
                     <button type="button" className="btn-secondary" onClick={() => exportAsImage('full-report-area', `Freight-Report-${globals.ref || 'Export'}.jpg`)}>
@@ -750,6 +875,19 @@ export default function App() {
            </div>
 
         </div>
+
+        {sidebarCollapsed && (
+          <button
+            type="button"
+            className="sidebar-edge-tab"
+            onClick={() => setSidebarCollapsed(false)}
+            title="Open history"
+            aria-label="Open history sidebar"
+          >
+            <HistoryIcon size={16} />
+            <span className="sidebar-edge-tab__label">History</span>
+          </button>
+        )}
 
         <HistorySidebar
           sidebarCollapsed={sidebarCollapsed}

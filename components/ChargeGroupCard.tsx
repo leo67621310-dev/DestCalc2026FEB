@@ -1,5 +1,5 @@
 import React from 'react';
-import { GripVertical, X, Clock, Divide, Plus } from 'lucide-react';
+import { GripVertical, X, Divide, Plus, Clock } from 'lucide-react';
 import { Group, Row, CURRENCIES, CONDITIONS, UNITS } from '../types';
 import { Draggable, Droppable } from '@hello-pangea/dnd';
 
@@ -46,33 +46,6 @@ export const ChargeGroupCard: React.FC<Props> = ({
         </div>
         
         <div className="cg-controls">
-          {group.multiplier_active ? (
-            <div className="multiplier-box">
-              <span>×</span>
-              <input 
-                type="number" 
-                value={group.multiplier_value} 
-                className="multiplier-value-input"
-                onChange={(e) => onUpdateGroup(groupIdx, 'multiplier_value', e.target.value)}
-              />
-              <span 
-                className="multiplier-remove-hit"
-                onClick={() => onUpdateGroup(groupIdx, 'multiplier_active', false)} 
-                title="Remove Multiplier"
-              >
-                <X size={14} />
-              </span>
-            </div>
-          ) : (
-            <button 
-              className="btn-icon-only btn-icon-only--outlined"
-              onClick={() => onUpdateGroup(groupIdx, 'multiplier_active', true)}
-              title="Add Time/Qty Multiplier"
-            >
-              <Clock size={14} />
-            </button>
-          )}
-
           <select 
             className="cg-select--currency"
             value={group.currency} 
@@ -133,51 +106,90 @@ export const ChargeGroupCard: React.FC<Props> = ({
                             <GripVertical size={16} />
                           </span>
 
-                          {/* RATE INPUT WITH DIVISOR LOGIC */}
-                {row.use_divisor ? (
-                  <div className="rate-input-wrapper">
-                    <input 
-                      type="number" 
-                      className="rate-main" 
-                      value={row.rate} 
-                      placeholder="Rate" 
-                      onChange={(e) => onUpdateRow(groupIdx, rIdx, 'rate', e.target.value)} 
-                    />
-                    <span className="rate-divider">/</span>
-                    <input 
-                      type="number" 
-                      className="rate-divisor" 
-                      value={row.divisor} 
-                      placeholder="Div" 
-                      onChange={(e) => onUpdateRow(groupIdx, rIdx, 'divisor', e.target.value)} 
-                    />
-                    <button 
+                          {/* RATE INPUT WITH DIVISOR + PER-ROW MULTIPLIER */}
+                <div className="rate-input-wrapper">
+                  {row.use_divisor ? (
+                    <>
+                      <input 
+                        type="number" 
+                        className="rate-main" 
+                        value={row.rate} 
+                        placeholder="Rate" 
+                        onChange={(e) => onUpdateRow(groupIdx, rIdx, 'rate', e.target.value)} 
+                      />
+                      <span className="rate-divider">/</span>
+                      <input 
+                        type="number" 
+                        className="rate-divisor" 
+                        value={row.divisor} 
+                        placeholder="Div" 
+                        onChange={(e) => onUpdateRow(groupIdx, rIdx, 'divisor', e.target.value)} 
+                      />
+                      <button 
+                        type="button"
+                        className="btn-icon-only btn-remove-divisor"
+                        onClick={() => onUpdateRow(groupIdx, rIdx, 'use_divisor', false)}
+                        title="Remove Divisor"
+                      >
+                        <X size={14} />
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <input 
+                        type="number" 
+                        className="rate-main" 
+                        value={row.rate} 
+                        placeholder="0.00" 
+                        onChange={(e) => onUpdateRow(groupIdx, rIdx, 'rate', e.target.value)} 
+                      />
+                      <button 
+                        className="btn-enable-div rate-chip" 
+                        onClick={() => onUpdateRow(groupIdx, rIdx, 'use_divisor', true)}
+                        title="Split the rate over N units, e.g. $80 per 1000 KG"
+                      >
+                        <Divide size={12} aria-hidden />
+                        <span className="btn-enable-div__label">per N</span>
+                      </button>
+                    </>
+                  )}
+
+                  {row.multiplier_active ? (
+                    <div className="rate-mult-box" title="Row multiplied by this value (e.g. days, shipments)">
+                      <span className="rate-mult-box__sign">×</span>
+                      <input
+                        type="number"
+                        className="rate-mult-box__value"
+                        min={1}
+                        value={row.multiplier_value ?? 1}
+                        onChange={(e) => onUpdateRow(groupIdx, rIdx, 'multiplier_value', e.target.value)}
+                      />
+                      <button
+                        type="button"
+                        className="rate-mult-box__remove"
+                        onClick={() => onUpdateRow(groupIdx, rIdx, 'multiplier_active', false)}
+                        title="Remove multiplier"
+                      >
+                        <X size={12} aria-hidden />
+                      </button>
+                    </div>
+                  ) : (
+                    <button
                       type="button"
-                      className="btn-icon-only btn-remove-divisor"
-                      onClick={() => onUpdateRow(groupIdx, rIdx, 'use_divisor', false)}
-                      title="Remove Divisor"
+                      className="btn-enable-mult rate-chip"
+                      onClick={() => {
+                        onUpdateRow(groupIdx, rIdx, 'multiplier_active', true);
+                        if (row.multiplier_value === undefined || row.multiplier_value === null) {
+                          onUpdateRow(groupIdx, rIdx, 'multiplier_value', 1);
+                        }
+                      }}
+                      title="Apply a time/qty multiplier to this row (e.g. storage × 3 days)"
                     >
-                      <X size={14} />
+                      <Clock size={12} aria-hidden />
+                      <span className="btn-enable-mult__label">× qty</span>
                     </button>
-                  </div>
-                ) : (
-                  <div className="rate-input-wrapper">
-                    <input 
-                      type="number" 
-                      className="rate-main" 
-                      value={row.rate} 
-                      placeholder="0.00" 
-                      onChange={(e) => onUpdateRow(groupIdx, rIdx, 'rate', e.target.value)} 
-                    />
-                    <button 
-                      className="btn-enable-div" 
-                      onClick={() => onUpdateRow(groupIdx, rIdx, 'use_divisor', true)}
-                      title="Add Divisor (Per X)"
-                    >
-                      <Divide size={14} />
-                    </button>
-                  </div>
-                )}
+                  )}
+                </div>
 
                 <select 
                   value={row.unit} 
