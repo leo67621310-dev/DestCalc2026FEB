@@ -48,6 +48,7 @@ export default function App() {
   const [isScanning, setIsScanning] = useState(false);
   const [lastScanFeedback, setLastScanFeedback] = useState<{ count: number; target: 'std' | 'req' | 'mgr'; groupIds: string[] } | null>(null);
   const scanDelayTimerRef = useRef<number | null>(null);
+  const scanStartedAtRef = useRef<number | null>(null);
 
   // --- DRAG STATE ---
   const dragItem = useRef<{ type: 'group' | 'row', prefix: string, gIdx: number, rIdx?: number } | null>(null);
@@ -142,6 +143,11 @@ export default function App() {
       window.clearTimeout(scanDelayTimerRef.current);
       scanDelayTimerRef.current = null;
     }
+  };
+
+  const getScanElapsedSeconds = () => {
+    if (scanStartedAtRef.current === null) return 0;
+    return Math.max(0, Math.round((Date.now() - scanStartedAtRef.current) / 1000));
   };
 
   const getTarget = (tab: string) => {
@@ -250,10 +256,12 @@ export default function App() {
 
   const processScanFile = async (file: File, prefix: string) => {
     setIsScanning(true);
+    scanStartedAtRef.current = Date.now();
     showToast(`⏳ Processing image for ${prefix.toUpperCase()}...`, 'info', 3200);
     clearScanDelayTimer();
     scanDelayTimerRef.current = window.setTimeout(() => {
-      showToast('Still scanning... this can take longer for larger images or slower API responses.', 'warning', 5000);
+      const elapsed = getScanElapsedSeconds();
+      showToast(`Still scanning... ${elapsed}s elapsed. This can take longer for larger images or slower API responses.`, 'warning', 5000);
     }, 8000);
 
     try {
@@ -294,9 +302,11 @@ export default function App() {
       showToast(`✅ Added ${newGroups.length} groups.`, 'success');
       setLastScanFeedback({ count: newGroups.length, target: prefix as 'std' | 'req' | 'mgr', groupIds: newGroups.map((gr: Group) => gr.id) });
     } catch (err: any) {
-      showToast(`Scan failed: ${err?.message || 'Something went wrong.'} Use a clear image of a charges table or try again.`, 'error', 8000);
+      const elapsed = getScanElapsedSeconds();
+      showToast(`Scan failed after ${elapsed}s: ${err?.message || 'Something went wrong.'} Use a clear image of a charges table or try again.`, 'error', 8000);
     } finally {
       clearScanDelayTimer();
+      scanStartedAtRef.current = null;
       setIsScanning(false);
     }
   };

@@ -1,0 +1,17 @@
+## Design Context
+
+### Users
+This app is for internal use by freight forwarder operations and documentation staff. They use it while preparing, checking, and comparing destination charges before issuing invoices. The primary job to be done is to compare charge structures in an accurate, mistake-free manner, with clear visibility into which rows apply and why.
+
+### Brand Personality
+Precise, easy to follow, operational. The interface should feel dependable and legible rather than expressive or decorative. The emotional goal is confidence: users should feel that the app helps them avoid mistakes and justify outcomes clearly.
+
+### Aesthetic Direction
+Function over style. Keep the UI restrained, structured, and calm. Dense information is acceptable when it improves accuracy and traceability, but it should remain scannable through hierarchy, spacing, and alignment. Avoid flashy treatments, unnecessary visual quirks, novelty patterns, or decorative motion that distracts from operational work. Color is flexible, but it must always support readability, state clarity, and comparison tasks.
+
+### Design Principles
+1. Accuracy first: every design decision should reduce ambiguity, prevent mistakes, or make calculation logic easier to verify.
+2. Clarity over personality: prioritize readable tables, obvious states, and understandable controls over visual flourish.
+3. Traceable outcomes: users should be able to see which charge applied, why it applied, and how totals were derived.
+4. Operational efficiency: optimize for fast comparison, invoice prep, and repeat internal workflows rather than exploration or marketing.
+5. Calm restraint: use color, motion, and emphasis sparingly and only when they improve comprehension or error prevention.
